@@ -65,9 +65,10 @@ namespace Hotsapi.Uploader.Common
             var analyzer = new Analyzer();
             var monitor = new Monitor();
 
-            _storage.Load().Map(x => Files.Add(x));
-            var filenames = Files.Select(x => x.Filename).ToList();
-            monitor.ScanReplays().Where(x => !filenames.Contains(x)).OrderByDescending(x => File.GetCreationTime(x)).Map(x => Files.Add(new ReplayFile(x)));
+            var replays = _storage.Load().ToList();
+            var filenames = new HashSet<string>(replays.Select(x => x.Filename));
+            replays.AddRange(monitor.ScanReplays().Where(x => !filenames.Contains(x)).Select(x => new ReplayFile(x)));
+            replays.OrderByDescending(x => x.Created).Map(x => Files.Add(x));
 
             monitor.ReplayAdded += (_, e) => Files.Insert(0, new ReplayFile(e.Data));
             monitor.Start();

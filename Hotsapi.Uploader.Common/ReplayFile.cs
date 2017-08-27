@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
 
@@ -12,6 +13,8 @@ namespace Hotsapi.Uploader.Common
 
         [XmlIgnore]
         public string Fingerprint { get; set; }
+
+        public DateTime Created { get; set; }
 
         UploadStatus _uploadStatus = UploadStatus.None;
         public UploadStatus UploadStatus
@@ -34,6 +37,7 @@ namespace Hotsapi.Uploader.Common
         public ReplayFile(string filename)
         {
             Filename = filename;
+            Created = File.GetCreationTime(filename);
         }
 
         public override string ToString()
