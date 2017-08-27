@@ -10,6 +10,7 @@ using System.IO;
 using System.Threading;
 using NLog;
 using Nito.AsyncEx;
+using System.Diagnostics;
 
 namespace Hotsapi.Uploader.Common
 {
@@ -70,7 +71,10 @@ namespace Hotsapi.Uploader.Common
             replays.AddRange(monitor.ScanReplays().Where(x => !filenames.Contains(x)).Select(x => new ReplayFile(x)));
             replays.OrderByDescending(x => x.Created).Map(x => Files.Add(x));
 
-            monitor.ReplayAdded += (_, e) => Files.Insert(0, new ReplayFile(e.Data));
+            monitor.ReplayAdded += async (_, e) => {
+                await EnsureFileAvailable(e.Data, 3000);
+                Files.Insert(0, new ReplayFile(e.Data));
+            };
             monitor.Start();
             Files.CollectionChanged += (_, __) => _collectionUpdated.Set();
 
@@ -83,12 +87,10 @@ namespace Hotsapi.Uploader.Common
                     var file = Files.Where(f => f.UploadStatus == UploadStatus.None).FirstOrDefault();
                     if (file != null) {
                         file.UploadStatus = UploadStatus.InProgress;
-                        // todo check that file is not not still being written to (in use)
-
-                        // test if game is vs AI or a custom game
-                        analyzer.Analyze(file);
+                        
+                        analyzer.Analyze(file); // test is eligible for upload (not AI, custom, etc)
                         if (file.UploadStatus == UploadStatus.InProgress) {
-                            // if not, upload it
+                            // if it is, upload it
                             await uploader.Upload(file);
                         }
                         try {
@@ -106,6 +108,33 @@ namespace Hotsapi.Uploader.Common
                 catch (Exception ex) {
                     _log.Error(ex, "Error in upload loop");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Ensure that HotS client finished writing replay file and it can be safely open
+        /// </summary>
+        /// <param name="filename">Filename to test</param>
+        /// <param name="timeout">Timeout in milliseconds</param>
+        /// <param name="testWrite">Whether to test read or write access</param>
+        public async Task EnsureFileAvailable(string filename, int timeout, bool testWrite = true)
+        {
+            var timer = new Stopwatch();
+            timer.Start();
+            while(timer.ElapsedMilliseconds < timeout) {
+                try {
+                    if (testWrite) {
+                        File.OpenWrite(filename).Close();
+                        _log.Debug("File open successful");
+                    } else {
+                        File.OpenRead(filename).Close();
+                    }
+                    return;
+                } catch (Exception e) {
+                    // maybe we should retry only on IOException and immediately return on others
+                    _log.Debug(e, "EnsureFileAvailable got exception");
+                    await Task.Delay(10);
+                }                
             }
         }
     }

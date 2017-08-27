@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Hotsapi.Uploader.Common
 {
-    public static class Extentions
+    public static class Extensions
     {
         /// <summary>
         /// Executes specified delegate on all members of the collection

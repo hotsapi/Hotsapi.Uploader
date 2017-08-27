@@ -53,7 +53,7 @@
                 <TextBlock Text="{Binding App.Manager.Aggregates[CustomGame], StringFormat=Custom game: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.CustomGame}}" />
                 <TextBlock Text="{Binding App.Manager.Aggregates[PtrRegion], StringFormat=Ptr region: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.PtrRegion}}" />
                 <TextBlock Text="{Binding App.Manager.Aggregates[TooOld], StringFormat=Too old: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.TooOld}}" />
-                <TextBlock Text="{Binding App.Manager.Aggregates[Incomplete], StringFormat=Too old: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.Incomplete}}" />
+                <TextBlock Text="{Binding App.Manager.Aggregates[Incomplete], StringFormat=Incomplete: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.Incomplete}}" />
             </StackPanel> 
             <StackPanel DockPanel.Dock="Bottom" helpers:MarginSetter.Margin="0, 8, 8, 0">
                 <CheckBox IsChecked="{Binding App.StartWithWindows}" Content="Start with windows" />

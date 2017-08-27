@@ -55,7 +55,7 @@
   <ItemGroup>
     <Compile Include="Analyzer.cs" />
     <Compile Include="EventArgs.cs" />
-    <Compile Include="Extentions.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="IReplayStorage.cs" />
     <Compile Include="Manager.cs" />
     <Compile Include="ObservableCollectionEx.cs" />
