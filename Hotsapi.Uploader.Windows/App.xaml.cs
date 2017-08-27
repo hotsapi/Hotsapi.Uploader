@@ -72,7 +72,7 @@ namespace Hotsapi.Uploader.Windows
         }
 
         private static Logger _log = LogManager.GetCurrentClassLogger();
-        private IUpdateManager _updateManager;
+        private UpdateManager _updateManager;
         private bool _updateAvailable;
         private object _lock = new object();
 

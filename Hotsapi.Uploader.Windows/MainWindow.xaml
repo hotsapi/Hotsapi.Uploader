@@ -57,7 +57,6 @@
             <StackPanel DockPanel.Dock="Bottom" helpers:MarginSetter.Margin="0, 8, 8, 0">
                 <CheckBox IsChecked="{Binding App.StartWithWindows}" Content="Start with windows" />
                 <CheckBox IsChecked="{Binding App.Settings.MinimizeToTray}" Content="Minimize to tray" />
-                <CheckBox IsChecked="{Binding App.Settings.AutoUpdate}" Content="Update automatically" />
                 <Button HorizontalAlignment="Stretch" Content="Show log" Click="ShowLog_Click" Margin="0, 8, 0, 0" />
             </StackPanel>
         </DockPanel>
