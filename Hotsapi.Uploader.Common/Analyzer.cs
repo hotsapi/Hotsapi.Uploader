@@ -21,7 +21,7 @@ namespace Hotsapi.Uploader.Common
         public void Analyze(ReplayFile file)
         {
             try {
-                var result = DataParser.ParseReplay(file.Filename, false, false);
+                var result = DataParser.ParseReplay(file.Filename, false, false, false, true);
                 switch (result.Item1) {
                     case DataParser.ReplayParseResult.ComputerPlayerFound:
                     case DataParser.ReplayParseResult.TryMeMode:

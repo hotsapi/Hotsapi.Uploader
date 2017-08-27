@@ -104,8 +104,7 @@ namespace Hotsapi.Uploader.Common
                     }
                 }
                 catch (Exception ex) {
-                    _log.Fatal(ex, "Error in upload loop");
-                    throw;
+                    _log.Error(ex, "Error in upload loop");
                 }
             }
         }

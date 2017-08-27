@@ -50,16 +50,22 @@ namespace Hotsapi.Uploader.Common
         public async Task<UploadStatus> Upload(string file)
         {
             try {
-                byte[] response;
+                string response;
                 using (var client = new WebClient()) {
-                    response = await client.UploadFileTaskAsync($"{ApiEndpoint}/upload", file);
+                    var bytes = await client.UploadFileTaskAsync($"{ApiEndpoint}/upload", file);
+                    response = Encoding.UTF8.GetString(bytes);
                 }
-                dynamic json = JObject.Parse(Encoding.UTF8.GetString(response));
-                if ((bool)json.success) {
-                    _log.Debug($"Uploaded file '{file}': {json.status}");
-                    return (UploadStatus)Enum.Parse(typeof(UploadStatus), (string)json.status);
+                dynamic json = JObject.Parse(response);
+                if ((bool)json.success) {                    
+                    if (Enum.TryParse<UploadStatus>((string)json.status, out UploadStatus status)) {
+                        _log.Debug($"Uploaded file '{file}': {status}");
+                        return status;
+                    } else {
+                        _log.Error($"Unknown upload status '{file}': {json.status}");
+                        return UploadStatus.UploadError;
+                    }
                 } else {
-                    _log.Warn($"Error uploading file '{file}': {json.message}");
+                    _log.Warn($"Error uploading file '{file}': {response}");
                     return UploadStatus.UploadError;
                 }
             }

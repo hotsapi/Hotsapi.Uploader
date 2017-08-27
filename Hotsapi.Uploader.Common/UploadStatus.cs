@@ -14,6 +14,7 @@ namespace Hotsapi.Uploader.Common
         AiDetected,
         CustomGame,
         PtrRegion,
+        Incomplete,
         TooOld,
     }
 }

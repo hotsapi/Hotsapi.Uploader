@@ -25,6 +25,7 @@ namespace Hotsapi.Uploader.Windows.UIHelpers
 
                 case UploadStatus.None:
                 case UploadStatus.UploadError:
+                case UploadStatus.Incomplete:
                 default:
                     return new SolidColorBrush(Colors.Red);
             }
