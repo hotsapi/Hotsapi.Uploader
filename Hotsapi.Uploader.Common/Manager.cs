@@ -87,8 +87,9 @@ namespace Hotsapi.Uploader.Common
                     var file = Files.Where(f => f.UploadStatus == UploadStatus.None).FirstOrDefault();
                     if (file != null) {
                         file.UploadStatus = UploadStatus.InProgress;
-                        
-                        analyzer.Analyze(file); // test is eligible for upload (not AI, custom, etc)
+
+                        // test if replay is eligible for upload (not AI, PTR, Custom, etc)
+                        analyzer.Analyze(file);
                         if (file.UploadStatus == UploadStatus.InProgress) {
                             // if it is, upload it
                             await uploader.Upload(file);
@@ -125,16 +126,16 @@ namespace Hotsapi.Uploader.Common
                 try {
                     if (testWrite) {
                         File.OpenWrite(filename).Close();
-                        _log.Debug("File open successful");
                     } else {
                         File.OpenRead(filename).Close();
                     }
                     return;
-                } catch (Exception e) {
-                    // maybe we should retry only on IOException and immediately return on others
-                    _log.Debug(e, "EnsureFileAvailable got exception");
-                    await Task.Delay(10);
-                }                
+                } catch (IOException) {
+                    // File is still in use
+                    await Task.Delay(100);
+                } catch {
+                    return;
+                }
             }
         }
     }
