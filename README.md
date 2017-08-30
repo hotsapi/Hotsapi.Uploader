@@ -1,6 +1,6 @@
 # Hotsapi.Uploader
 
-Uploads Heroes of the Storm replays to hotsapi.net
+Uploads Heroes of the Storm replays to [hotsapi.net](http://hotsapi.net) ([repo link](https://github.com/poma/hotsapi))
 
 ![Screenshot](http://hotsapi.net/img/uploader.png)
 
