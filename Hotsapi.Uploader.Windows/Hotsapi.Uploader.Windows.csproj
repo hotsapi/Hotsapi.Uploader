@@ -183,6 +183,7 @@
     </GetAssemblyIdentity>
     <Exec Command="&quot;@(NuGetCommandLine->'%(FullPath)')&quot; pack $(TargetName).nuspec -Version $([System.Version]::Parse(%(assemblyInfo.Version)).ToString(3)) -OutputDirectory $(OutDir) -BasePath $(OutDir)" />
     <Exec Command="&quot;@(Squirrel->'%(FullPath)')&quot; --no-msi --releasify $(OutDir)$(TargetName).$([System.Version]::Parse(%(assemblyInfo.Version)).ToString(3)).nupkg --releaseDir=../Releases --setupIcon=$(ProjectDir)icon-white.ico" />
+    <Move SourceFiles="../Releases/Setup.exe" DestinationFiles="../Releases/HotsApiUploaderSetup.exe" />
     <Message Importance="High" Text="Successfully created setup package" />
   </Target>
 </Project>
