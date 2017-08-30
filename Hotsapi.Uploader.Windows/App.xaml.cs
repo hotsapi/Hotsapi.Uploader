@@ -57,11 +57,11 @@ namespace Hotsapi.Uploader.Windows
         public bool StartWithWindows
         {
             get {
-                var reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run");
+                var reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion").OpenSubKey(@"Run");
                 return reg.GetValue("Hotsapi") != null;
             }
             set {
-                var reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
+                var reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion").OpenSubKey(@"Run", true);
                 if (value) {
                     string command = $@"""{Directory.GetParent(AppDir)}\Update.exe"" --processStart Hotsapi.Uploader.exe --process-start-args ""--autorun""";
                     reg.SetValue("Hotsapi", command);
