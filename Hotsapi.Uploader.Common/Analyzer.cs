@@ -12,7 +12,7 @@ namespace Hotsapi.Uploader.Common
     {
         public int MinimumBuild { get; set; }
 
-        private static Logger _log = LogManager.GetCurrentClassLogger();        
+        private static Logger _log = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Analyze replay locally before uploading
@@ -42,7 +42,7 @@ namespace Hotsapi.Uploader.Common
                 }
 
                 var replay = result.Item2;
-                
+
                 if (replay.ReplayBuild < MinimumBuild) {
                     file.UploadStatus = UploadStatus.TooOld;
                     return;

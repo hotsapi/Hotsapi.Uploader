@@ -122,7 +122,7 @@ namespace Hotsapi.Uploader.Common
         {
             var timer = new Stopwatch();
             timer.Start();
-            while(timer.ElapsedMilliseconds < timeout) {
+            while (timer.ElapsedMilliseconds < timeout) {
                 try {
                     if (testWrite) {
                         File.OpenWrite(filename).Close();
@@ -130,10 +130,12 @@ namespace Hotsapi.Uploader.Common
                         File.OpenRead(filename).Close();
                     }
                     return;
-                } catch (IOException) {
+                }
+                catch (IOException) {
                     // File is still in use
                     await Task.Delay(100);
-                } catch {
+                }
+                catch {
                     return;
                 }
             }

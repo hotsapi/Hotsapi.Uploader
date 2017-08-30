@@ -40,7 +40,7 @@ namespace Hotsapi.Uploader.Common
 
         public void Save(IEnumerable<ReplayFile> files)
         {
-            try {                
+            try {
                 using (var stream = new MemoryStream()) {
                     var data = files.ToArray();
                     var serializer = new XmlSerializer(data.GetType());

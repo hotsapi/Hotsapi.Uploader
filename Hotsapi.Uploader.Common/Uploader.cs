@@ -56,7 +56,7 @@ namespace Hotsapi.Uploader.Common
                     response = Encoding.UTF8.GetString(bytes);
                 }
                 dynamic json = JObject.Parse(response);
-                if ((bool)json.success) {                    
+                if ((bool)json.success) {
                     if (Enum.TryParse<UploadStatus>((string)json.status, out UploadStatus status)) {
                         _log.Debug($"Uploaded file '{file}': {status}");
                         return status;

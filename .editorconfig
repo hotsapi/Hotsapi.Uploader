@@ -1,0 +1,13 @@
+root = true
+[*.cs]
+indent_style = space
+indent_size = 4
+
+;csharp_new_line_before_open_brace = accessors, anonymous_methods, anonymous_types, control_blocks, events, indexers, lambdas, object_collection
+csharp_new_line_before_open_brace = types, methods, properties
+csharp_new_line_before_else = false
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_new_line_within_query_expression_clauses = true
