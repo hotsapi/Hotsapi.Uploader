@@ -3,6 +3,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -47,12 +48,27 @@ namespace Hotsapi.Uploader.Common
                     file.UploadStatus = UploadStatus.TooOld;
                     return;
                 }
-                // todo get full replay fingerprint
-                file.Fingerprint = replay.RandomValue.ToString();
+
+                file.Fingerprint = GetFingerprint(replay);
             }
             catch (Exception e) {
                 _log.Warn(e, $"Error analyzing file {file}");
             }
+        }
+
+        /// <summary>
+        /// Get unique hash of replay. Compatible with HotsLogs
+        /// </summary>
+        /// <param name="replay"></param>
+        /// <returns></returns>
+        private string GetFingerprint(Replay replay)
+        {
+            var str = new StringBuilder();
+            replay.Players.Select(p => p.BattleNetId).OrderBy(x => x).Map(x => str.Append(x.ToString()));
+            str.Append(replay.RandomValue);
+            var md5 = MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(str.ToString()));
+            var result = new Guid(md5);
+            return result.ToString();
         }
     }
 }
