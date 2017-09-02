@@ -15,4 +15,4 @@ Coding conventions are as usual for C# except braces, those are in egyptian styl
 
 All logic is contained in `Hotsapi.Uploader.Common` to make UI project as thin as possible. `Hotsapi.Uploader.Windows` is responsible for only OS-specific tasks such as auto update, tray icon, autorun, file locations.
 
-For the current to do list look in the [Issues](https://github.com/poma/Hotsapi.Uploader/issues) page
+For the current to do list look in the [Project](https://github.com/poma/Hotsapi.Uploader/projects/1) page
