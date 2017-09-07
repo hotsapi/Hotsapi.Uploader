@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -46,5 +47,18 @@ namespace Hotsapi.Uploader.Common
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public class ReplayFileComparer : IEqualityComparer<ReplayFile>
+        {
+            public bool Equals(ReplayFile x, ReplayFile y)
+            {
+                return x.Filename == y.Filename && x.Created == y.Created;
+            }
+
+            public int GetHashCode(ReplayFile obj)
+            {
+                return obj.Filename.GetHashCode() ^ obj.Created.GetHashCode();
+            }
+        }
     }
 }

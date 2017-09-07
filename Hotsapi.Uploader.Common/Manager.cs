@@ -66,13 +66,10 @@ namespace Hotsapi.Uploader.Common
             var analyzer = new Analyzer();
             var monitor = new Monitor();
 
-            var replays = _storage.Load().ToList();
-            var filenames = replays.ToDictionary(x => x.Filename);
-            replays.AddRange(monitor.ScanReplays()
-                .Where(x => !filenames.ContainsKey(x))
-                .Select(x => new ReplayFile(x))
-                .Where(x => x.Created != filenames[x.Filename].Created)
-            );
+            var replays = new List<ReplayFile>(_storage.Load());
+            var lookup = new HashSet<ReplayFile>(replays);
+            var comparer = new ReplayFile.ReplayFileComparer();
+            replays.AddRange(monitor.ScanReplays().Select(x => new ReplayFile(x)).Where(x => !lookup.Contains(x, comparer)));
             replays.OrderByDescending(x => x.Created).Map(x => Files.Add(x));
 
             monitor.ReplayAdded += async (_, e) => {
