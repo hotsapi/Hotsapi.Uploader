@@ -22,6 +22,9 @@ namespace Hotsapi.Uploader.Common
         private bool _initialized = false;
         private readonly AsyncAutoResetEvent _collectionUpdated = new AsyncAutoResetEvent();
         private readonly IReplayStorage _storage;
+        private Uploader _uploader;
+        private Analyzer _analyzer;
+        private Monitor _monitor;
 
         public event PropertyChangedEventHandler PropertyChanged;
         public string Status
@@ -34,6 +37,17 @@ namespace Hotsapi.Uploader.Common
         {
             get {
                 return Files.GroupBy(x => x.UploadStatus).ToDictionary(x => x.Key, x => x.Count());
+            }
+        }
+        public bool UploadToHotslogs
+        {
+            get {
+                return _uploader?.UploadToHotslogs ?? false;
+            }
+            set {
+                if (_uploader != null) {
+                    _uploader.UploadToHotslogs = value;
+                }
             }
         }
 
@@ -62,24 +76,24 @@ namespace Hotsapi.Uploader.Common
 
         private async Task UploadLoop()
         {
-            var uploader = new Uploader();
-            var analyzer = new Analyzer();
-            var monitor = new Monitor();
+            _uploader = new Uploader();
+            _analyzer = new Analyzer();
+            _monitor = new Monitor();
 
             var replays = new List<ReplayFile>(_storage.Load());
             var lookup = new HashSet<ReplayFile>(replays);
             var comparer = new ReplayFile.ReplayFileComparer();
-            replays.AddRange(monitor.ScanReplays().Select(x => new ReplayFile(x)).Where(x => !lookup.Contains(x, comparer)));
+            replays.AddRange(_monitor.ScanReplays().Select(x => new ReplayFile(x)).Where(x => !lookup.Contains(x, comparer)));
             replays.OrderByDescending(x => x.Created).Map(x => Files.Add(x));
 
-            monitor.ReplayAdded += async (_, e) => {
+            _monitor.ReplayAdded += async (_, e) => {
                 await EnsureFileAvailable(e.Data, 3000);
                 Files.Insert(0, new ReplayFile(e.Data));
             };
-            monitor.Start();
+            _monitor.Start();
             Files.CollectionChanged += (_, __) => _collectionUpdated.Set();
 
-            analyzer.MinimumBuild = await uploader.GetMinimumBuild();
+            _analyzer.MinimumBuild = await _uploader.GetMinimumBuild();
 
             while (true) {
                 try {
@@ -90,10 +104,10 @@ namespace Hotsapi.Uploader.Common
                         file.UploadStatus = UploadStatus.InProgress;
 
                         // test if replay is eligible for upload (not AI, PTR, Custom, etc)
-                        analyzer.Analyze(file);
+                        _analyzer.Analyze(file);
                         if (file.UploadStatus == UploadStatus.InProgress) {
                             // if it is, upload it
-                            await uploader.Upload(file);
+                            await _uploader.Upload(file);
                         }
                         try {
                             // save only replays with fixed status. Will retry failed ones on next launch.

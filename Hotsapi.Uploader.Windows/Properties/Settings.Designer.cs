@@ -118,5 +118,17 @@ namespace Hotsapi.Uploader.Windows.Properties {
                 this["WindowWidth"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UploadToHotslogs {
+            get {
+                return ((bool)(this["UploadToHotslogs"]));
+            }
+            set {
+                this["UploadToHotslogs"] = value;
+            }
+        }
     }
 }

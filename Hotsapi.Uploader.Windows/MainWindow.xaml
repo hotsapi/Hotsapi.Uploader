@@ -56,6 +56,7 @@
                 <TextBlock Text="{Binding App.Manager.Aggregates[Incomplete], StringFormat=Incomplete: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.Incomplete}}" />
             </StackPanel> 
             <StackPanel DockPanel.Dock="Bottom" helpers:MarginSetter.Margin="0, 8, 8, 0">
+                <CheckBox IsChecked="{Binding App.Settings.UploadToHotslogs}" Content="Upload a copy to HotsLogs" />
                 <CheckBox IsChecked="{Binding App.StartWithWindows}" Content="Start with windows" />
                 <CheckBox IsChecked="{Binding App.Settings.MinimizeToTray}" Content="Minimize to tray" />
                 <Button HorizontalAlignment="Stretch" Content="Show log" Click="ShowLog_Click" Margin="0, 8, 0, 0" />

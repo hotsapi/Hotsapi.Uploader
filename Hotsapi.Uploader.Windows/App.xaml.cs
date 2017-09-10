@@ -89,6 +89,14 @@ namespace Hotsapi.Uploader.Windows
             Manager = new Manager(new ReplayStorage($@"{AppDir}\..\replays.xml"));
             // Enable collection modification from any thread
             BindingOperations.EnableCollectionSynchronization(Manager.Files, _lock);
+
+            Manager.UploadToHotslogs = Settings.UploadToHotslogs;
+            Settings.PropertyChanged += (o, ev) => {
+                if (ev.PropertyName == nameof(Settings.UploadToHotslogs)) {
+                    Manager.UploadToHotslogs = Settings.UploadToHotslogs;
+                }
+            };
+
             if (e.Args.Contains("--autorun") && Settings.MinimizeToTray) {
                 TrayIcon.Visible = true;
             } else {

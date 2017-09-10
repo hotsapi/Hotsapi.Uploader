@@ -19,6 +19,8 @@ namespace Hotsapi.Uploader.Common
         const string ApiEndpoint = "http://hotsapi.net/api/v1";
 #endif
 
+        public bool UploadToHotslogs { get; set; }
+
         /// <summary>
         /// New instance of replay uploader
         /// </summary>
@@ -52,7 +54,7 @@ namespace Hotsapi.Uploader.Common
             try {
                 string response;
                 using (var client = new WebClient()) {
-                    var bytes = await client.UploadFileTaskAsync($"{ApiEndpoint}/upload", file);
+                    var bytes = await client.UploadFileTaskAsync($"{ApiEndpoint}/upload?uploadToHotslogs={UploadToHotslogs}", file);
                     response = Encoding.UTF8.GetString(bytes);
                 }
                 dynamic json = JObject.Parse(response);
@@ -84,7 +86,7 @@ namespace Hotsapi.Uploader.Common
             try {
                 string response;
                 using (var client = new WebClient()) {
-                    response = await client.DownloadStringTaskAsync($"{ApiEndpoint}/replays/fingerprints/v2/{fingerprint}");
+                    response = await client.DownloadStringTaskAsync($"{ApiEndpoint}/replays/fingerprints/v2/{fingerprint}?uploadToHotslogs={UploadToHotslogs}");
                 }
                 dynamic json = JObject.Parse(response);
                 return (bool)json.exists;
