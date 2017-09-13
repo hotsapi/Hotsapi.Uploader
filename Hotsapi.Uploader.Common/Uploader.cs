@@ -97,6 +97,38 @@ namespace Hotsapi.Uploader.Common
             }
         }
 
+        /// <summary>
+        /// Mass check replay fingerprints against database to detect duplicates
+        /// </summary>
+        /// <param name="fingerprints"></param>
+        public async Task<string[]> CheckDuplicate(IEnumerable<string> fingerprints)
+        {
+            try {
+                string response;
+                using (var client = new WebClient()) {
+                    response = await client.UploadStringTaskAsync($"{ApiEndpoint}/replays/fingerprints?uploadToHotslogs={UploadToHotslogs}", String.Join("\n", fingerprints));
+                }
+                dynamic json = JObject.Parse(response);
+                return (json.exists as JArray).Select(x => x.ToString()).ToArray();
+            }
+            catch (WebException ex) {
+                _log.Warn(ex, $"Error checking fingerprint array");
+                return new string[0];
+            }
+        }
+
+        /// <summary>
+        /// Mass check replay fingerprints against database to detect duplicates
+        /// </summary>
+        public async Task CheckDuplicate(IEnumerable<ReplayFile> replays)
+        {
+            var exists = new HashSet<string>(await CheckDuplicate(replays.Select(x => x.Fingerprint)));
+            replays.Where(x => exists.Contains(x.Fingerprint)).Map(x => x.UploadStatus = UploadStatus.Duplicate);
+        }
+
+        /// <summary>
+        /// Get minimum HotS client build supported by HotsApi
+        /// </summary>
         public async Task<int> GetMinimumBuild()
         {
             try {
