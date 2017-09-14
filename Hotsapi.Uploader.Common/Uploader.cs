@@ -86,7 +86,7 @@ namespace Hotsapi.Uploader.Common
             try {
                 string response;
                 using (var client = new WebClient()) {
-                    response = await client.DownloadStringTaskAsync($"{ApiEndpoint}/replays/fingerprints/v2/{fingerprint}?uploadToHotslogs={UploadToHotslogs}");
+                    response = await client.DownloadStringTaskAsync($"{ApiEndpoint}/replays/fingerprints/v3/{fingerprint}?uploadToHotslogs={UploadToHotslogs}");
                 }
                 dynamic json = JObject.Parse(response);
                 return (bool)json.exists;
