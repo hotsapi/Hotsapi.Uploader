@@ -1,4 +1,4 @@
-# Hotsapi.Uploader
+# Hotsapi.Uploader [![Build status](https://ci.appveyor.com/api/projects/status/0tg5u1yev3l8p2qv/branch/master?svg=true)](https://ci.appveyor.com/project/poma/hotsapi-uploader/branch/master)
 
 Uploads Heroes of the Storm replays to [hotsapi.net](http://hotsapi.net) ([repo link](https://github.com/poma/hotsapi))
 
