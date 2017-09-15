@@ -12,3 +12,6 @@ build:
 
 artifacts:
 - path: Releases\HotsApiUploaderSetup.exe
+
+cache:
+  - packages -> **\packages.config
