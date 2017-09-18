@@ -33,7 +33,7 @@
       <Value Profile="(Default)">None</Value>
     </Setting>
     <Setting Name="Theme" Type="System.String" Scope="User">
-      <Value Profile="(Default)">Default</Value>
+      <Value Profile="(Default)">MetroDark</Value>
     </Setting>
     <Setting Name="AllowPreReleases" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
