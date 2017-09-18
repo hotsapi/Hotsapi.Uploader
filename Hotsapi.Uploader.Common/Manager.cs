@@ -86,7 +86,7 @@ namespace Hotsapi.Uploader.Common
             var lookup = new HashSet<ReplayFile>(replays);
             var comparer = new ReplayFile.ReplayFileComparer();
             replays.AddRange(_monitor.ScanReplays().Select(x => new ReplayFile(x)).Where(x => !lookup.Contains(x, comparer)));
-            replays.OrderByDescending(x => x.Created).Map(x => Files.Add(x));
+            Files.AddRange(replays.OrderByDescending(x => x.Created));
 
             _monitor.ReplayAdded += async (_, e) => {
                 await EnsureFileAvailable(e.Data, 3000);
