@@ -45,7 +45,7 @@
             </ListBox.ItemTemplate>
         </ListBox>
         <DockPanel Grid.Column="1" Grid.Row="1" Margin="12, 0, 0, 0" LastChildFill="False">
-            <StackPanel DockPanel.Dock="Top" helpers:MarginSetter.Margin="0, 2" Margin="0, 0, 8, 0">
+            <StackPanel DockPanel.Dock="Top" helpers:MarginSetter.Margin="0, 2" Margin="0, 8, 0, 0">
                 <TextBlock Text="{Binding App.Manager.Status}" FontWeight="Bold" Margin="0, 0, 0, 6" />
                 <TextBlock Text="{Binding App.Manager.Aggregates[None], StringFormat=Not processed: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.None}}" />
                 <TextBlock Text="{Binding App.Manager.Aggregates[Success], StringFormat=Success: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.Success}}" />

@@ -163,7 +163,7 @@ namespace Hotsapi.Uploader.Windows
             }
             try {
                 if (_updateManager == null) {
-                    _updateManager = await UpdateManager.GitHubUpdateManager(Settings.UpdateRepository);
+                    _updateManager = await UpdateManager.GitHubUpdateManager(Settings.UpdateRepository, prerelease: Settings.AllowPreReleases);
                 }
                 var release = await _updateManager.UpdateApp();
                 if (release != null) {

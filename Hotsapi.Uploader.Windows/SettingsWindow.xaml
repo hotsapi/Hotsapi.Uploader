@@ -8,7 +8,8 @@
         xmlns:common="clr-namespace:Hotsapi.Uploader.Common;assembly=Hotsapi.Uploader.Common"
         mc:Ignorable="d" WindowStyle="ToolWindow"
         WindowStartupLocation="CenterOwner"
-        Title="Settings" SizeToContent="WidthAndHeight">
+        Title="Settings" SizeToContent="WidthAndHeight"
+        KeyDown="Window_KeyDown">
     <Window.Resources>
         <helpers:FlagsConverter x:Key="flags" />
     </Window.Resources>
@@ -19,7 +20,7 @@
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" Margin="20" helpers:MarginSetter.Margin="0, 8, 0, 0">
             <TextBlock Text="Delete replays after upload:" FontWeight="Bold" Margin="0, 0, 1, 0" />
-            <TextBlock Foreground="DarkGray" HorizontalAlignment="Left" FontSize="10" TextWrapping="Wrap" MaxWidth="150" Margin="0, 0, 1, 0"
+            <TextBlock Foreground="{StaticResource DimmedTextBrush}" HorizontalAlignment="Left" FontSize="10" TextWrapping="Wrap" MaxWidth="150" Margin="0, 0, 1, 0"
                        Text="Warning! This feature is not yet extensively tested, use at your own risk and make a backup of all important replays" />
             <CheckBox Content="PTR" IsChecked="{Binding App.Settings.DeleteAfterUpload, Converter={StaticResource flags}, ConverterParameter={x:Static common:DeleteFiles.PTR}, Mode=TwoWay}" />
             <CheckBox Content="Ai" IsChecked="{Binding App.Settings.DeleteAfterUpload, Converter={StaticResource flags}, ConverterParameter={x:Static common:DeleteFiles.Ai}, Mode=TwoWay}" />
@@ -38,6 +39,11 @@
                     <ComboBoxItem Content="Dark" Tag="MetroDark" />
                 </ComboBox.Items>
             </ComboBox>
+            <StackPanel Margin="0, 40, 0, 0" x:Name="PreReleasePanel" Visibility="Hidden">
+                <CheckBox Content="Allow beta updates" FontWeight="SemiBold" IsChecked="{Binding App.Settings.AllowPreReleases}" />
+                <TextBlock Foreground="{StaticResource DimmedTextBrush}" HorizontalAlignment="Left" FontSize="10" TextWrapping="Wrap" MaxWidth="150" Margin="0, 0, 1, 0"
+                           Text="Intended for developers. Allows automatic updates to untested pre-release versions. Needs a restart to take effect." />
+            </StackPanel>
         </StackPanel>
     </Grid>
 </Window>

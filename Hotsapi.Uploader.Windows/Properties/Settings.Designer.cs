@@ -154,5 +154,17 @@ namespace Hotsapi.Uploader.Windows.Properties {
                 this["Theme"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AllowPreReleases {
+            get {
+                return ((bool)(this["AllowPreReleases"]));
+            }
+            set {
+                this["AllowPreReleases"] = value;
+            }
+        }
     }
 }

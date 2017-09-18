@@ -22,6 +22,16 @@ namespace Hotsapi.Uploader.Windows
         public SettingsWindow()
         {
             InitializeComponent();
+            if (App.Settings.AllowPreReleases) {
+                PreReleasePanel.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Z && Keyboard.Modifiers == ModifierKeys.Control) {
+                PreReleasePanel.Visibility = Visibility.Visible;
+            }
         }
     }
 }
