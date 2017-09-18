@@ -91,9 +91,13 @@ namespace Hotsapi.Uploader.Windows
             BindingOperations.EnableCollectionSynchronization(Manager.Files, _lock);
 
             Manager.UploadToHotslogs = Settings.UploadToHotslogs;
+            Manager.DeleteAfterUpload = Settings.DeleteAfterUpload;
             Settings.PropertyChanged += (o, ev) => {
                 if (ev.PropertyName == nameof(Settings.UploadToHotslogs)) {
                     Manager.UploadToHotslogs = Settings.UploadToHotslogs;
+                }
+                if (ev.PropertyName == nameof(Settings.DeleteAfterUpload)) {
+                    Manager.DeleteAfterUpload = Settings.DeleteAfterUpload;
                 }
             };
 

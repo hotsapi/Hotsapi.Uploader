@@ -19,41 +19,58 @@ namespace Hotsapi.Uploader.Common
         /// Analyze replay locally before uploading
         /// </summary>
         /// <param name="file">Replay file</param>
-        public void Analyze(ReplayFile file)
+        public Replay Analyze(ReplayFile file)
         {
             try {
                 var result = DataParser.ParseReplay(file.Filename, false, false, false, true);
-                switch (result.Item1) {
-                    case DataParser.ReplayParseResult.ComputerPlayerFound:
-                    case DataParser.ReplayParseResult.TryMeMode:
-                        file.UploadStatus = UploadStatus.AiDetected;
-                        return;
-
-                    case DataParser.ReplayParseResult.PTRRegion:
-                        file.UploadStatus = UploadStatus.PtrRegion;
-                        return;
-
-                    case DataParser.ReplayParseResult.PreAlphaWipe:
-                        file.UploadStatus = UploadStatus.TooOld;
-                        return;
-                }
-
-                if (result.Item1 != DataParser.ReplayParseResult.Success) {
-                    return;
-                }
-
                 var replay = result.Item2;
+                var parseResult = result.Item1;
+                var status = GetPreStatus(replay, parseResult);
 
-                if (replay.ReplayBuild < MinimumBuild) {
-                    file.UploadStatus = UploadStatus.TooOld;
-                    return;
+                if (status != null) {
+                    file.UploadStatus = status.Value;
+                }
+
+                if (parseResult != DataParser.ReplayParseResult.Success) {
+                    return null;
                 }
 
                 file.Fingerprint = GetFingerprint(replay);
+                return replay;
             }
             catch (Exception e) {
                 _log.Warn(e, $"Error analyzing file {file}");
+                return null;
             }
+        }
+
+        public UploadStatus? GetPreStatus(Replay replay, DataParser.ReplayParseResult parseResult)
+        {
+            switch (parseResult) {
+                case DataParser.ReplayParseResult.ComputerPlayerFound:
+                case DataParser.ReplayParseResult.TryMeMode:
+                    return UploadStatus.AiDetected;
+
+                case DataParser.ReplayParseResult.PTRRegion:
+                    return UploadStatus.PtrRegion;
+
+                case DataParser.ReplayParseResult.PreAlphaWipe:
+                    return UploadStatus.TooOld;
+            }
+
+            if (parseResult != DataParser.ReplayParseResult.Success) {
+                return null;
+            }
+
+            if (replay.GameMode == GameMode.Custom) {
+                return UploadStatus.CustomGame;
+            }
+
+            if (replay.ReplayBuild < MinimumBuild) {
+                return UploadStatus.TooOld;
+            }
+
+            return null;
         }
 
         /// <summary>

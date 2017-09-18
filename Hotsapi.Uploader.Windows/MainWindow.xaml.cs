@@ -37,6 +37,11 @@ namespace Hotsapi.Uploader.Windows
             Process.Start("explorer.exe", $@"{App.AppDir}\..\logs");
         }
 
+        private void Settings_Click(object sender, RoutedEventArgs e)
+        {
+            new SettingsWindow() { Owner = this, DataContext = this }.ShowDialog();
+        }
+
         private void Restart_Click(object sender, RoutedEventArgs e)
         {
             UpdateManager.RestartApp();

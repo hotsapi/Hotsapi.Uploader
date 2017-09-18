@@ -130,5 +130,17 @@ namespace Hotsapi.Uploader.Windows.Properties {
                 this["UploadToHotslogs"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("None")]
+        public global::Hotsapi.Uploader.Common.DeleteFiles DeleteAfterUpload {
+            get {
+                return ((global::Hotsapi.Uploader.Common.DeleteFiles)(this["DeleteAfterUpload"]));
+            }
+            set {
+                this["DeleteAfterUpload"] = value;
+            }
+        }
     }
 }

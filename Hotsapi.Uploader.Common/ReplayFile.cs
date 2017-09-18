@@ -10,12 +10,26 @@ namespace Hotsapi.Uploader.Common
     [Serializable]
     public class ReplayFile : INotifyPropertyChanged
     {
-        public string Filename { get; set; }
-
         [XmlIgnore]
         public string Fingerprint { get; set; }
-
+        public string Filename { get; set; }
         public DateTime Created { get; set; }
+
+        private bool _deleted;
+        public bool Deleted
+        {
+            get {
+                return _deleted;
+            }
+            set {
+                if (_deleted == value) {
+                    return;
+                }
+
+                _deleted = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Deleted)));
+            }
+        }
 
         UploadStatus _uploadStatus = UploadStatus.None;
         public UploadStatus UploadStatus

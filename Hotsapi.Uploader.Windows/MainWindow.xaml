@@ -35,9 +35,11 @@
         <ListBox Grid.Row="1" ItemsSource="{Binding App.Manager.Files}" HorizontalContentAlignment="Stretch">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <DockPanel>
+                    <DockPanel LastChildFill="False">
                         <TextBlock DockPanel.Dock="Right" Text="{Binding UploadStatus, Converter={StaticResource statusConverter}}" Foreground="{Binding UploadStatus, Converter={StaticResource statusColorConverter}}" />
                         <TextBlock Text="{Binding Filename, Converter={StaticResource filenameConverter}}" DockPanel.Dock="Left" />
+                        <TextBlock Text="&#x2718;" Foreground="DarkRed" DockPanel.Dock="Left" Visibility="{Binding Deleted, Converter={StaticResource visibilityConverter}}" 
+                                   ToolTip="This replay has been deleted by uploader according to your settings" />
                     </DockPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
@@ -54,12 +56,13 @@
                 <TextBlock Text="{Binding App.Manager.Aggregates[PtrRegion], StringFormat=Ptr region: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.PtrRegion}}" />
                 <TextBlock Text="{Binding App.Manager.Aggregates[TooOld], StringFormat=Too old: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.TooOld}}" />
                 <TextBlock Text="{Binding App.Manager.Aggregates[Incomplete], StringFormat=Incomplete: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.Incomplete}}" />
-            </StackPanel> 
+            </StackPanel>
             <StackPanel DockPanel.Dock="Bottom" helpers:MarginSetter.Margin="0, 8, 8, 0">
                 <CheckBox IsChecked="{Binding App.Settings.UploadToHotslogs}" Content="Upload a copy to HotsLogs" ToolTip="Replay is uploaded only once and then a copy is sent to HotsLogs by our server" />
                 <CheckBox IsChecked="{Binding App.StartWithWindows}" Content="Start with windows" />
                 <CheckBox IsChecked="{Binding App.Settings.MinimizeToTray}" Content="Minimize to tray" />
                 <Button HorizontalAlignment="Stretch" Content="Show log" Click="ShowLog_Click" Margin="0, 8, 0, 0" />
+                <Button HorizontalAlignment="Stretch" Content="Settings" Click="Settings_Click" Margin="0, 8, 0, 0" />
             </StackPanel>
         </DockPanel>
         <StackPanel Grid.ColumnSpan="2" Grid.Row="2" Margin="0, 12, 0, 0" Visibility="{Binding App.UpdateAvailable, Converter={StaticResource visibilityConverter}}" Orientation="Horizontal">

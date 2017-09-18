@@ -11,6 +11,7 @@ using System.Threading;
 using NLog;
 using Nito.AsyncEx;
 using System.Diagnostics;
+using Heroes.ReplayParser;
 
 namespace Hotsapi.Uploader.Common
 {
@@ -50,6 +51,7 @@ namespace Hotsapi.Uploader.Common
                 }
             }
         }
+        public DeleteFiles DeleteAfterUpload { get; set; }
 
         public Manager(IReplayStorage storage)
         {
@@ -104,7 +106,7 @@ namespace Hotsapi.Uploader.Common
                         file.UploadStatus = UploadStatus.InProgress;
 
                         // test if replay is eligible for upload (not AI, PTR, Custom, etc)
-                        _analyzer.Analyze(file);
+                        var replay = _analyzer.Analyze(file);
                         if (file.UploadStatus == UploadStatus.InProgress) {
                             // if it is, upload it
                             await _uploader.Upload(file);
@@ -114,8 +116,16 @@ namespace Hotsapi.Uploader.Common
                             _storage.Save(Files.Where(x => !new[] { UploadStatus.None, UploadStatus.UploadError, UploadStatus.InProgress }.Contains(x.UploadStatus)));
                         }
                         catch (Exception ex) {
-                            // we can still continue uploading
                             _log.Error(ex, "Error saving replay list");
+                        }
+                        if (ShouldDelete(file, replay)) {
+                            try {
+                                _log.Info($"Deleting replay {file}");
+                                file.Deleted = true;
+                                File.Delete(file.Filename);
+                            } catch (Exception ex) {
+                                _log.Error(ex, "Error deleting file");
+                            }
                         }
                     } else {
                         await _collectionUpdated.WaitAsync();
@@ -154,6 +164,21 @@ namespace Hotsapi.Uploader.Common
                     return;
                 }
             }
+        }
+
+        private bool ShouldDelete(ReplayFile file, Replay replay)
+        {
+            return
+                DeleteAfterUpload.HasFlag(DeleteFiles.PTR) && file.UploadStatus == UploadStatus.PtrRegion ||
+                DeleteAfterUpload.HasFlag(DeleteFiles.Ai) && file.UploadStatus == UploadStatus.AiDetected ||
+                DeleteAfterUpload.HasFlag(DeleteFiles.Custom) && file.UploadStatus == UploadStatus.CustomGame ||
+                file.UploadStatus == UploadStatus.Success && (
+                    DeleteAfterUpload.HasFlag(DeleteFiles.Brawl) && replay.GameMode == GameMode.Brawl ||
+                    DeleteAfterUpload.HasFlag(DeleteFiles.QuickMatch) && replay.GameMode == GameMode.QuickMatch ||
+                    DeleteAfterUpload.HasFlag(DeleteFiles.UnrankedDraft) && replay.GameMode == GameMode.UnrankedDraft ||
+                    DeleteAfterUpload.HasFlag(DeleteFiles.HeroLeague) && replay.GameMode == GameMode.HeroLeague ||
+                    DeleteAfterUpload.HasFlag(DeleteFiles.TeamLeague) && replay.GameMode == GameMode.TeamLeague
+                );
         }
     }
 }

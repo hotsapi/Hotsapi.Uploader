@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Analyzer.cs" />
+    <Compile Include="DeleteFiles.cs" />
     <Compile Include="EventArgs.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="IReplayStorage.cs" />

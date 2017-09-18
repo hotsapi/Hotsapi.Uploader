@@ -29,5 +29,8 @@
     <Setting Name="UploadToHotslogs" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="DeleteAfterUpload" Type="Hotsapi.Uploader.Common.DeleteFiles" Scope="User">
+      <Value Profile="(Default)">None</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
