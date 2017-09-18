@@ -25,12 +25,12 @@
             <ColumnDefinition Width="auto" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="100" />
+            <RowDefinition Height="102" /><!-- better than 100 for logo aliasing -->
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <Grid Grid.ColumnSpan="2">
-            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="28" Text="HotsApi.net Uploader" />
+            <Image Source="/Resources/uploader_light.png" Margin="20" SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="HighQuality" />
         </Grid>
         <ListBox Grid.Row="1" ItemsSource="{Binding App.Manager.Files}" HorizontalContentAlignment="Stretch">
             <ListBox.ItemTemplate>
