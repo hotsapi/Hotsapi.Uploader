@@ -11,24 +11,29 @@ namespace Hotsapi.Uploader.Windows.UIHelpers
         {
             switch (value) {
                 case UploadStatus.Success:
-                    return new SolidColorBrush(Colors.Green);
+                    return GetBrush("StatusUploadSuccessBrush");
 
                 case UploadStatus.InProgress:
-                    return new SolidColorBrush(Colors.Orange);
+                    return GetBrush("StatusUploadInProgressBrush");
 
                 case UploadStatus.Duplicate:
                 case UploadStatus.AiDetected:
                 case UploadStatus.CustomGame:
                 case UploadStatus.PtrRegion:
                 case UploadStatus.TooOld:
-                    return new SolidColorBrush(Colors.DarkGray);
+                    return GetBrush("StatusUploadNeutralBrush");
 
                 case UploadStatus.None:
                 case UploadStatus.UploadError:
                 case UploadStatus.Incomplete:
                 default:
-                    return new SolidColorBrush(Colors.Red);
+                    return GetBrush("StatusUploadFailedBrush");
             }
+        }
+
+        private Brush GetBrush(string key)
+        {
+            return App.Current.Resources[key] as Brush;
         }
     }
 }

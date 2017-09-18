@@ -139,6 +139,8 @@ namespace Hotsapi.Uploader.Windows
             Themes.TryGetValue(theme, out string resource);
             if (resource != null) {
                 Resources.MergedDictionaries.Add(new ResourceDictionary() { Source = new Uri(resource, UriKind.Relative) });
+            } else {
+                Resources.MergedDictionaries.Add(new ResourceDictionary() { Source = new Uri("Themes/Default/Default.xaml", UriKind.Relative) });
             }
         }
 

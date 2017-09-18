@@ -127,6 +127,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Themes\Default\Default.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Themes\MetroDark\MetroDark.Hotsapi.Implicit.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

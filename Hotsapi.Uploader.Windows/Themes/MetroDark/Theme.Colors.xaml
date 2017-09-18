@@ -1,7 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d">
 
     <!-- ********************************** THEME BRUSHES - For Color Tuner **********************************-->
-    <SolidColorBrush x:Key="Brush01" Color="#FF00AADE" />
+    <SolidColorBrush x:Key="Brush01" Color="#FF9d64de" />
     <SolidColorBrush x:Key="Brush02" Color="White" />
     <SolidColorBrush x:Key="Brush03" Color="#FFC6C6C6" />
     <SolidColorBrush x:Key="Brush04" Color="#FF565656" />
@@ -54,11 +54,11 @@
     <Color x:Key="Color_022">#66E2E2E2</Color>
 
     <!--Theme Accent colors -->
-    <Color x:Key="Color_023">#FF0086AF</Color>
-    <Color x:Key="Color_024">#FF00AADE</Color>
-    <Color x:Key="Color_025">#FF80D5EF</Color>
-    <Color x:Key="Color_026">#FFB2E1EF</Color>
-    <Color x:Key="Color_027">#2600AADE</Color>
+    <Color x:Key="Color_023">#FF4f52b0</Color>
+    <Color x:Key="Color_024">#FF6468de</Color>
+    <Color x:Key="Color_025">#FF8185f0</Color>
+    <Color x:Key="Color_026">#FFb1b3f0</Color>
+    <Color x:Key="Color_027">#266468de</Color>
 
     <!--Theme Error colors -->
     <Color x:Key="Color_028">#FFD0284C</Color>
@@ -81,7 +81,7 @@
     <Color x:Key="Color_053">#FF02284D</Color>
     <Color x:Key="Color_055">#FF543511</Color>
     <Color x:Key="Color_056">#FF211303</Color>
-    <Color x:Key="Color_058">#FF89806D</Color>
+    <Color x:Key="Color_058">#FFBB8E2E</Color>
     <Color x:Key="Color_059">#FF393225</Color>
     <Color x:Key="Color_061">#FF58458B</Color>
     <Color x:Key="Color_062">#FF211347</Color>

@@ -59,7 +59,7 @@
     <SolidColorBrush x:Key="ButtonBorderBrush" Color="{StaticResource Color_006}" />
     <SolidColorBrush x:Key="ButtonHoverBackgroundBrush" Color="{StaticResource Color_006}" />
     <SolidColorBrush x:Key="ButtonHoverBorderBrush" Color="{StaticResource Color_004}" />
-    <SolidColorBrush x:Key="ButtonPressedBackgroundBrush" Color="{StaticResource Color_024}" />
+    <SolidColorBrush x:Key="ButtonPressedBackgroundBrush" Color="{StaticResource Color_027}" />
     <SolidColorBrush x:Key="ButtonPressedBorderBrush" Color="{StaticResource Color_024}" />
 
     <!-- ComboBoxItem Brushes -->
@@ -89,7 +89,7 @@
     <!-- Need to change color or delete -->
     <SolidColorBrush x:Key="ListBoxItemBorderBrush" Color="{StaticResource Color_016}" />
     <!-- Need to change color or delete -->
-    <SolidColorBrush x:Key="ListBoxItemSelectedBackgroundBrush" Color="{StaticResource Color_024}" />
+    <SolidColorBrush x:Key="ListBoxItemSelectedBackgroundBrush" Color="{StaticResource Color_027}" />
     <!-- Need to change color or delete -->
     <SolidColorBrush x:Key="ListBoxItemSelectedBorderBrush" Color="{StaticResource Color_024}" />
     <!-- Need to change color or delete -->
@@ -383,7 +383,7 @@
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
         <Setter Property="FontSize" Value="14.667" />
         <Setter Property="FontFamily" Value="Segoe UI" />
-        <Setter Property="MinHeight" Value="30" />
+        <Setter Property="MinHeight" Value="25" />
         <Setter Property="Padding" Value="6,2" />
         <Setter Property="Margin" Value="0" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -503,7 +503,7 @@
                         <ContentControl x:Name="contentControl1" Visibility="Collapsed" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Margin="{TemplateBinding Padding}" Foreground="{StaticResource ForegroundBrush}">
                             <ContentPresenter x:Name="contentPresenter1" />
                         </ContentControl>
-                        <Rectangle x:Name="FocusedVisualElement" IsHitTestVisible="False" Visibility="Collapsed" Stroke="{StaticResource ListBoxItemPressedBorderBrush}" StrokeThickness="2" />
+                        <Rectangle x:Name="FocusedVisualElement" IsHitTestVisible="False" Visibility="Collapsed" Stroke="{StaticResource ListBoxItemPressedBorderBrush}" StrokeThickness="1" />
                         <Rectangle x:Name="DisabledVisualElement" Fill="{StaticResource DisabledVisualElement}" Visibility="Collapsed" />
                     </Grid>
                 </ControlTemplate>

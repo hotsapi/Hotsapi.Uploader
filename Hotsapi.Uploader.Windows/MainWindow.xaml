@@ -38,7 +38,7 @@
                     <DockPanel LastChildFill="False">
                         <TextBlock DockPanel.Dock="Right" Text="{Binding UploadStatus, Converter={StaticResource statusConverter}}" Foreground="{Binding UploadStatus, Converter={StaticResource statusColorConverter}}" />
                         <TextBlock Text="{Binding Filename, Converter={StaticResource filenameConverter}}" DockPanel.Dock="Left" />
-                        <TextBlock Text="&#x2718;" Foreground="DarkRed" DockPanel.Dock="Left" Visibility="{Binding Deleted, Converter={StaticResource visibilityConverter}}" 
+                        <TextBlock Text="&#x2718;" Foreground="{StaticResource FileDeletedIconBrush}" DockPanel.Dock="Left" Visibility="{Binding Deleted, Converter={StaticResource visibilityConverter}}" 
                                    ToolTip="This replay has been deleted by uploader according to your settings" />
                     </DockPanel>
                 </DataTemplate>
@@ -66,7 +66,7 @@
             </StackPanel>
         </DockPanel>
         <StackPanel Grid.ColumnSpan="2" Grid.Row="2" Margin="0, 12, 0, 0" Visibility="{Binding App.UpdateAvailable, Converter={StaticResource visibilityConverter}}" Orientation="Horizontal">
-            <TextBlock Foreground="Orange">
+            <TextBlock Foreground="{StaticResource UpdateAvailableTextBrush}">
                 &#x2757; An update is downloaded and will be installed when you restart the uploader. <Hyperlink Click="Restart_Click">Restart now.</Hyperlink>
             </TextBlock>
         </StackPanel>
