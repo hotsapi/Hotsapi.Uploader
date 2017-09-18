@@ -32,5 +32,8 @@
     <Setting Name="DeleteAfterUpload" Type="Hotsapi.Uploader.Common.DeleteFiles" Scope="User">
       <Value Profile="(Default)">None</Value>
     </Setting>
+    <Setting Name="Theme" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Default</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -71,6 +71,11 @@ namespace Hotsapi.Uploader.Windows
             }
         }
 
+        public readonly Dictionary<string, string> Themes = new Dictionary<string, string> {
+            { "Default", null },
+            { "MetroDark", "Themes/MetroDark/MetroDark.Hotsapi.Implicit.xaml" },
+        };
+
         private static Logger _log = LogManager.GetCurrentClassLogger();
         private UpdateManager _updateManager;
         private bool _updateAvailable;
@@ -92,12 +97,16 @@ namespace Hotsapi.Uploader.Windows
 
             Manager.UploadToHotslogs = Settings.UploadToHotslogs;
             Manager.DeleteAfterUpload = Settings.DeleteAfterUpload;
+            ApplyTheme(Settings.Theme);
             Settings.PropertyChanged += (o, ev) => {
                 if (ev.PropertyName == nameof(Settings.UploadToHotslogs)) {
                     Manager.UploadToHotslogs = Settings.UploadToHotslogs;
                 }
                 if (ev.PropertyName == nameof(Settings.DeleteAfterUpload)) {
                     Manager.DeleteAfterUpload = Settings.DeleteAfterUpload;
+                }
+                if (ev.PropertyName == nameof(Settings.Theme)) {
+                    ApplyTheme(Settings.Theme);
                 }
             };
 
@@ -120,6 +129,17 @@ namespace Hotsapi.Uploader.Windows
             BackupSettings();
             _updateManager?.Dispose();
             TrayIcon?.Dispose();
+        }
+
+        public void ApplyTheme(string theme)
+        {
+            // we will need a separate resource dictionary for themes 
+            // if we intend to store someting else in App resource dictionary
+            Resources.MergedDictionaries.Clear();
+            Themes.TryGetValue(theme, out string resource);
+            if (resource != null) {
+                Resources.MergedDictionaries.Add(new ResourceDictionary() { Source = new Uri(resource, UriKind.Relative) });
+            }
         }
 
         private void SetupTrayIcon()
