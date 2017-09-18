@@ -24,7 +24,7 @@
       <Value Profile="(Default)">600</Value>
     </Setting>
     <Setting Name="WindowWidth" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">600</Value>
+      <Value Profile="(Default)">700</Value>
     </Setting>
     <Setting Name="UploadToHotslogs" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
