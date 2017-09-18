@@ -4,7 +4,8 @@
     <!-- Hotsapi specific brushes -->
     <SolidColorBrush x:Key="UpdateAvailableTextBrush" Color="Orange" />
     <SolidColorBrush x:Key="FileDeletedIconBrush" Color="DarkRed" />
-    
+    <SolidColorBrush x:Key="DimmedTextBrush" Color="DarkGray" />
+
     <!-- Upload statuses -->
     <SolidColorBrush x:Key="StatusUploadInProgressBrush" Color="Orange" />
     <SolidColorBrush x:Key="StatusUploadSuccessBrush" Color="Green" />
