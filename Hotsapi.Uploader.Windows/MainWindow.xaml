@@ -62,8 +62,10 @@
                 <Button HorizontalAlignment="Stretch" Content="Show log" Click="ShowLog_Click" Margin="0, 8, 0, 0" />
             </StackPanel>
         </DockPanel>
-        <StackPanel Grid.ColumnSpan="2" Grid.Row="2" Margin="0, 12, 0, 0" Visibility="{Binding App.UpdateAvailable, Converter={StaticResource visibilityConverter}}">
-            <TextBlock Text="&#x2757; An update is downloaded and will be installed when you restart the uploader" Foreground="Orange" />
+        <StackPanel Grid.ColumnSpan="2" Grid.Row="2" Margin="0, 12, 0, 0" Visibility="{Binding App.UpdateAvailable, Converter={StaticResource visibilityConverter}}" Orientation="Horizontal">
+            <TextBlock Foreground="Orange">
+                &#x2757; An update is downloaded and will be installed when you restart the uploader. <Hyperlink Click="Restart_Click">Restart now.</Hyperlink>
+            </TextBlock>
         </StackPanel>
     </Grid>
 </Window>

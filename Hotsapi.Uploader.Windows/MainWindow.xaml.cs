@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Squirrel;
+using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
@@ -34,6 +35,11 @@ namespace Hotsapi.Uploader.Windows
         private void ShowLog_Click(object sender, RoutedEventArgs e)
         {
             Process.Start("explorer.exe", $@"{App.AppDir}\..\logs");
+        }
+
+        private void Restart_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateManager.RestartApp();
         }
     }
 }
