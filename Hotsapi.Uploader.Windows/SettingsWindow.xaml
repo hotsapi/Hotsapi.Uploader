@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Hotsapi.Uploader.Windows"
         xmlns:helpers="clr-namespace:Hotsapi.Uploader.Windows.UIHelpers"
         xmlns:common="clr-namespace:Hotsapi.Uploader.Common;assembly=Hotsapi.Uploader.Common"
-        mc:Ignorable="d" WindowStyle="ToolWindow"
+        mc:Ignorable="d" ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Title="Settings" SizeToContent="WidthAndHeight"
         KeyDown="Window_KeyDown">
@@ -23,7 +23,7 @@
             <TextBlock Foreground="{StaticResource DimmedTextBrush}" HorizontalAlignment="Left" FontSize="10" TextWrapping="Wrap" MaxWidth="150" Margin="0, 0, 1, 0"
                        Text="Warning! This feature is not yet extensively tested, use at your own risk and make a backup of all important replays" />
             <CheckBox Content="PTR" IsChecked="{Binding App.Settings.DeleteAfterUpload, Converter={StaticResource flags}, ConverterParameter={x:Static common:DeleteFiles.PTR}, Mode=TwoWay}" />
-            <CheckBox Content="Ai" IsChecked="{Binding App.Settings.DeleteAfterUpload, Converter={StaticResource flags}, ConverterParameter={x:Static common:DeleteFiles.Ai}, Mode=TwoWay}" />
+            <CheckBox Content="AI" IsChecked="{Binding App.Settings.DeleteAfterUpload, Converter={StaticResource flags}, ConverterParameter={x:Static common:DeleteFiles.Ai}, Mode=TwoWay}" />
             <CheckBox Content="Custom" IsChecked="{Binding App.Settings.DeleteAfterUpload, Converter={StaticResource flags}, ConverterParameter={x:Static common:DeleteFiles.Custom}, Mode=TwoWay}" />
             <CheckBox Content="Brawl" IsChecked="{Binding App.Settings.DeleteAfterUpload, Converter={StaticResource flags}, ConverterParameter={x:Static common:DeleteFiles.Brawl}, Mode=TwoWay}" />
             <CheckBox Content="Quick match" IsChecked="{Binding App.Settings.DeleteAfterUpload, Converter={StaticResource flags}, ConverterParameter={x:Static common:DeleteFiles.QuickMatch}, Mode=TwoWay}" />
