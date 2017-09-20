@@ -16,3 +16,10 @@ artifacts:
 cache:
   - packages -> **\packages.config
 
+notifications:
+- provider: Webhook
+  url: https://webhooks.gitter.im/e/59b5d893e9a21d517d5e
+  method: POST
+  on_build_success: true
+  on_build_failure: true
+  on_build_status_changed: true
