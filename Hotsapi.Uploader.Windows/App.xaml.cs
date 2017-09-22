@@ -167,6 +167,7 @@ namespace Hotsapi.Uploader.Windows
                 }
                 var release = await _updateManager.UpdateApp();
                 if (release != null) {
+                    _log.Info($"Updating app to version {release.Version}");
                     UpdateAvailable = true;
                     BackupSettings();
                 }
