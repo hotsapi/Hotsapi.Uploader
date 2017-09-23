@@ -32,6 +32,11 @@ namespace Hotsapi.Uploader.Windows
             }
         }
 
+        private void Logo_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            Process.Start("https://hotsapi.net");
+        }
+
         private void ShowLog_Click(object sender, RoutedEventArgs e)
         {
             Process.Start("explorer.exe", $@"{App.AppDir}\..\logs");

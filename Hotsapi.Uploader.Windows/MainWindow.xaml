@@ -30,7 +30,7 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <Grid Grid.ColumnSpan="2">
-            <Image Source="/Resources/uploader_light.png" Margin="20" SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="HighQuality" />
+            <Image Source="/Resources/uploader_light.png" Margin="20" SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="HighQuality" Cursor="Hand" MouseUp="Logo_MouseUp" />
         </Grid>
         <ListBox Grid.Row="1" ItemsSource="{Binding App.Manager.Files}" HorizontalContentAlignment="Stretch">
             <ListBox.ItemTemplate>
