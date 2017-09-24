@@ -1,30 +1,14 @@
 environment:
   core_version: 1.7.0
+  GitHubToken:
+    secure: Hq962a6/5Qpa9d37AJuVplk7sYc4AYRn9b5dg4eLi1jXBkdvbj2zRsG+8r+4nNE3
 image: Visual Studio 2017
 configuration: Release
 version: '$(core_version)+{branch}.{build}'
 install:
   - cmd: git submodule update --init --recursive
   - cmd: nuget restore
-  - ps: >-
-      echo "Downloading previous relese"
-
-      $repo = 'poma/Hotsapi.Uploader'
-
-      $targetDir = 'Releases'
-
-      $ProgressPreference = 'SilentlyContinue' # Turning off progress sificantly increases download speed
-
-      $release = Invoke-WebRequest "https://api.github.com/repos/$repo/releases/latest" | ConvertFrom-Json
-
-      md $targetDir
-
-      foreach ($asset in $release.assets)
-
-      {
-          echo "Downloading $($asset.name)"
-          Invoke-WebRequest $asset.browser_download_url -out "$targetDir\$($asset.name)"
-      }
+  - ps: .\packages\squirrel.windows.*\tools\SyncReleases.exe  --url=https://github.com/poma/Hotsapi.Uploader --token=$env:GitHubToken
 
 assembly_info:
   patch: true
@@ -56,6 +40,7 @@ deploy:
 
 cache:
   - packages -> **\packages.config
+  - Releases
 
 notifications:
   - provider: Webhook
