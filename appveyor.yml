@@ -1,25 +1,63 @@
-version: '{build}'
+environment:
+  core_version: 1.7.0
 image: Visual Studio 2017
 configuration: Release
-
+version: "$(core_version)+{branch}.{build}"
 install:
-- cmd: git submodule update --init --recursive
-- cmd: nuget restore
+  - cmd: git submodule update --init --recursive
+  - cmd: nuget restore
+  - ps: >-
+      $repo = 'poma/Hotsapi.Uploader'
+
+      $targetDir = 'Releases'
+
+      $ProgressPreference = 'SilentlyContinue' # Turning off progress sificantly increases download speed
+
+      $release = Invoke-WebRequest "https://api.github.com/repos/$repo/releases/latest" | ConvertFrom-Json
+
+      md $targetDir
+
+      foreach ($asset in $release.assets)
+
+      {
+          echo "Downloading $($asset.name)"
+          Invoke-WebRequest $asset.browser_download_url -out "$targetDir\$($asset.name)"
+      }
+
+assembly_info:
+  patch: true
+  file: Hotsapi.Uploader.Windows\Properties\AssemblyInfo.cs
+  assembly_version: '$(core_version)'
+  assembly_file_version: '$(core_version)'
+  assembly_informational_version: '{version}'
 
 build:
   project: Hotsapi.Uploader.sln
   verbosity: minimal
 
 artifacts:
-- path: Releases\HotsApiUploaderSetup.exe
+  - path: Releases\HotsApiUploaderSetup.exe
+  - path: Releases\RELEASES
+  - path: Releases\Hotsapi.Uploader-$(core_version)-full.nupkg
+  - path: Releases\Hotsapi.Uploader-$(core_version)-delta.nupkg
+
+deploy:
+  - provider: GitHub
+    auth_token:
+      secure: Hq962a6/5Qpa9d37AJuVplk7sYc4AYRn9b5dg4eLi1jXBkdvbj2zRsG+8r+4nNE3
+    repository: poma/Hotsapi.Uploader
+    artifact: '/.*/'
+    draft: true
+    on:
+      appveyor_repo_tag: true
 
 cache:
   - packages -> **\packages.config
 
 notifications:
-- provider: Webhook
-  url: https://webhooks.gitter.im/e/59b5d893e9a21d517d5e
-  method: POST
-  on_build_success: true
-  on_build_failure: true
-  on_build_status_changed: true
+  - provider: Webhook
+    url: https://webhooks.gitter.im/e/59b5d893e9a21d517d5e
+    method: POST
+    on_build_success: true
+    on_build_failure: true
+    on_build_status_changed: true
