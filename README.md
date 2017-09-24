@@ -7,7 +7,7 @@ Uploads Heroes of the Storm replays to [hotsapi.net](http://hotsapi.net) ([repo 
 # Installation
 
 * Requires .NET Framework 4.6.2 or higher
-* [__Download__](https://github.com/Poma/Hotsapi.Uploader/releases) **"HotsApiUploaderSetup.exe"** from [Releases](https://github.com/Poma/Hotsapi.Uploader/releases) page (you don't need to download other files listed there) and run it
+* [__Download__](https://github.com/Poma/Hotsapi.Uploader/releases/latest) **"HotsApiUploaderSetup.exe"** from [Releases](https://github.com/Poma/Hotsapi.Uploader/releases/latest) page (you don't need to download other files listed there) and run it
 
 # Contributing
 
