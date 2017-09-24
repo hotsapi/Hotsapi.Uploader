@@ -27,6 +27,7 @@ namespace Hotsapi.Uploader.Windows
 
         private void Window_Closed(object sender, EventArgs e)
         {
+            App.mainWindow = null;
             if (ShutdownOnClose) {
                 App.Shutdown();
             }

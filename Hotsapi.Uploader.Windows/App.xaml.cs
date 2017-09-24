@@ -80,6 +80,7 @@ namespace Hotsapi.Uploader.Windows
         private UpdateManager _updateManager;
         private bool _updateAvailable;
         private object _lock = new object();
+        public MainWindow mainWindow;
 
 
         private void Application_Startup(object sender, StartupEventArgs e)
@@ -113,7 +114,8 @@ namespace Hotsapi.Uploader.Windows
             if (e.Args.Contains("--autorun") && Settings.MinimizeToTray) {
                 TrayIcon.Visible = true;
             } else {
-                new MainWindow().Show();
+                mainWindow = new MainWindow();
+                mainWindow.Show();
             }
             Manager.Start();
             //Check for updates on startup and then every hour
@@ -144,6 +146,21 @@ namespace Hotsapi.Uploader.Windows
             }
         }
 
+        public void Activate()
+        {
+            if (mainWindow != null) {
+                if (mainWindow.WindowState == WindowState.Minimized) {
+                    mainWindow.WindowState = WindowState.Normal;
+                }
+                mainWindow.Activate();
+            } else {
+                mainWindow = new MainWindow();
+                mainWindow.Show();
+                mainWindow.WindowState = WindowState.Normal;
+                TrayIcon.Visible = false;
+            }
+        }
+
         private void SetupTrayIcon()
         {
             TrayIcon = new NotifyIcon {
@@ -151,7 +168,8 @@ namespace Hotsapi.Uploader.Windows
                 Visible = false
             };
             TrayIcon.Click += (o, e) => {
-                new MainWindow().Show();
+                mainWindow = new MainWindow();
+                mainWindow.Show();
                 TrayIcon.Visible = false;
             };
         }
