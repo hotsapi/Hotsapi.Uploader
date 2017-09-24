@@ -218,7 +218,7 @@
       <Output TaskParameter="Assemblies" ItemName="assemblyInfo" />
     </GetAssemblyIdentity>
     <Exec Command="&quot;@(NuGetCommandLine->'%(FullPath)')&quot; pack $(TargetName).nuspec -Version $([System.Version]::Parse(%(assemblyInfo.Version)).ToString(3)) -OutputDirectory $(OutDir) -BasePath $(OutDir)" />
-    <Exec Command="&quot;@(Squirrel->'%(FullPath)')&quot; --no-msi --releasify $(OutDir)$(TargetName).$([System.Version]::Parse(%(assemblyInfo.Version)).ToString(3)).nupkg --releaseDir=../Releases --setupIcon=Resources\uploader_icon_light.ico" />
+    <Exec Command="&quot;@(Squirrel->'%(FullPath)')&quot; --framework-version=net462 --no-msi --releasify $(OutDir)$(TargetName).$([System.Version]::Parse(%(assemblyInfo.Version)).ToString(3)).nupkg --releaseDir=../Releases --setupIcon=Resources\uploader_icon_light.ico" />
     <Move SourceFiles="../Releases/Setup.exe" DestinationFiles="../Releases/HotsApiUploaderSetup.exe" />
     <Message Importance="High" Text="Successfully created setup package" />
   </Target>
