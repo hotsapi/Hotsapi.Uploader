@@ -1,5 +1,4 @@
 ﻿using Hotsapi.Uploader.Common;
-using Microsoft.Win32;
 using NLog;
 using Squirrel;
 using System;
@@ -34,6 +33,7 @@ namespace Hotsapi.Uploader.Windows
         public static Properties.Settings Settings { get { return Hotsapi.Uploader.Windows.Properties.Settings.Default; } }
         public static string AppExe { get { return Assembly.GetExecutingAssembly().Location; } }
         public static string AppDir { get { return Path.GetDirectoryName(AppExe); } }
+        public static string AppFile { get { return Path.GetFileName(AppExe); } }
         public static string SettingsDir { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Hotsapi"); } }
         public bool UpdateAvailable
         {
@@ -58,16 +58,16 @@ namespace Hotsapi.Uploader.Windows
         public bool StartWithWindows
         {
             get {
-                var reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion").OpenSubKey(@"Run");
-                return reg.GetValue("Hotsapi") != null;
+                // todo: find a way to get shortcut name from UpdateManager instead of hardcoding it
+                return File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\Hotsapi Uploader.lnk");
             }
             set {
-                var reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion").OpenSubKey(@"Run", true);
+                // use a local dummy to not wait for github request
+                var updateManager = _updateManager ?? new UpdateManager(@"not needed here");
                 if (value) {
-                    string command = $@"""{Directory.GetParent(AppDir)}\Update.exe"" --processStart Hotsapi.Uploader.exe --process-start-args ""--autorun""";
-                    reg.SetValue("Hotsapi", command);
+                    updateManager.CreateShortcutsForExecutable(AppFile, ShortcutLocation.Startup, false, "--autorun");
                 } else {
-                    reg.DeleteValue("Hotsapi", false);
+                    updateManager.RemoveShortcutsForExecutable(AppFile, ShortcutLocation.Startup);
                 }
             }
         }
