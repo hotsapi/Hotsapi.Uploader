@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualBasic.ApplicationServices;
+using Microsoft.Win32;
 using Squirrel;
 using System;
 using System.Collections.Generic;
@@ -37,6 +38,11 @@ namespace Hotsapi.Uploader.Windows
             }
             if (File.Exists($@"{App.AppDir}\..\last.config") && !File.Exists($@"{App.SettingsDir}\last.config")) {
                 File.Move($@"{App.AppDir}\..\last.config", $@"{App.SettingsDir}\last.config");
+            }
+            var reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion").OpenSubKey(@"Run");
+            if (reg.OpenSubKey(@"Run").GetValue("Hotsapi") != null) {
+                reg.OpenSubKey(@"Run", true).DeleteValue("Hotsapi", false);
+                new UpdateManager(@"not needed here").CreateShortcutsForExecutable(App.AppFile, ShortcutLocation.Startup, false, "--autorun");
             }
 
             SingleInstanceManager manager = new SingleInstanceManager();
