@@ -51,6 +51,7 @@ deploy:
     artifact: '/.*/'
     draft: true
     on:
+      branch: /^v\d+\.\d+\.\d+/
       appveyor_repo_tag: true
 
 cache:
