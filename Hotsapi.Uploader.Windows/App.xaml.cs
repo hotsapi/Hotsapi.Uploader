@@ -1,4 +1,5 @@
 ﻿using Hotsapi.Uploader.Common;
+using Microsoft.Win32;
 using NLog;
 using Squirrel;
 using System;
@@ -48,11 +49,11 @@ namespace Hotsapi.Uploader.Windows
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(UpdateAvailable)));
             }
         }
+        public static Version Version { get { return Assembly.GetExecutingAssembly().GetName().Version; } }
         public string VersionString
         {
             get {
-                var version = Assembly.GetExecutingAssembly().GetName().Version;
-                return $"v{version.Major}.{version.Minor}" + (version.Build == 0 ? "" : $".{version.Build}");
+                return $"v{Version.Major}.{Version.Minor}" + (Version.Build == 0 ? "" : $".{Version.Build}");
             }
         }
         public bool StartWithWindows
@@ -223,12 +224,25 @@ namespace Hotsapi.Uploader.Windows
                     File.Copy(sourceFile, destFile, true);
                     Settings.Reload();
                     Settings.Upgrade();
+
+                    if (string.IsNullOrEmpty(Settings.ApplicationVersion)) { // < v1.7
+                        var reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion").OpenSubKey(@"Run");
+                        if (reg.OpenSubKey(@"Run").GetValue("Hotsapi") != null) {
+                            reg.OpenSubKey(@"Run", true).DeleteValue("Hotsapi", false);
+                            new UpdateManager(@"not needed here").CreateShortcutsForExecutable(App.AppFile, ShortcutLocation.Startup, false, "--autorun");
+                        }
+                    } else {
+                        var previous = Version.Parse(Settings.ApplicationVersion);
+
+                        // custom upgrade code
+                    }
                 }
                 catch (Exception e) {
                     _log.Error(e, "Error upgrading settings");
                 }
             }
 
+            Settings.ApplicationVersion = Version.ToString();
             Settings.UpgradeRequired = false;
             Settings.Save();
         }
