@@ -40,7 +40,7 @@ namespace Hotsapi.Uploader.Windows
 
         private void ShowLog_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start("explorer.exe", $@"{App.AppDir}\..\logs");
+            Process.Start("explorer.exe", $@"{App.SettingsDir}\logs");
         }
 
         private void Settings_Click(object sender, RoutedEventArgs e)

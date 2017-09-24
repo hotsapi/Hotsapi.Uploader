@@ -34,6 +34,7 @@ namespace Hotsapi.Uploader.Windows
         public static Properties.Settings Settings { get { return Hotsapi.Uploader.Windows.Properties.Settings.Default; } }
         public static string AppExe { get { return Assembly.GetExecutingAssembly().Location; } }
         public static string AppDir { get { return Path.GetDirectoryName(AppExe); } }
+        public static string SettingsDir { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Hotsapi"); } }
         public bool UpdateAvailable
         {
             get {
@@ -92,7 +93,7 @@ namespace Hotsapi.Uploader.Windows
                 RestoreSettings();
             }
             SetupTrayIcon();
-            Manager = new Manager(new ReplayStorage($@"{AppDir}\..\replays.xml"));
+            Manager = new Manager(new ReplayStorage($@"{SettingsDir}\replays.xml"));
             // Enable collection modification from any thread
             BindingOperations.EnableCollectionSynchronization(Manager.Files, _lock);
 
@@ -203,7 +204,7 @@ namespace Hotsapi.Uploader.Windows
         {
             Settings.Save();
             string settingsFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.PerUserRoamingAndLocal).FilePath;
-            string destination = $@"{AppDir}\..\last.config";
+            string destination = $@"{SettingsDir}\last.config";
             File.Copy(settingsFile, destination, true);
         }
 
@@ -214,7 +215,7 @@ namespace Hotsapi.Uploader.Windows
         public static void RestoreSettings()
         {
             string destFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.PerUserRoamingAndLocal).FilePath;
-            string sourceFile = $@"{AppDir}\..\last.config";
+            string sourceFile = $@"{SettingsDir}\last.config";
 
             if (File.Exists(sourceFile)) {
                 try {
