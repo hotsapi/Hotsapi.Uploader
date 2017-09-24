@@ -191,7 +191,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hotsapi.Uploader.Common\Hotsapi.Uploader.Common.csproj">
@@ -216,7 +218,7 @@
       <Output TaskParameter="Assemblies" ItemName="assemblyInfo" />
     </GetAssemblyIdentity>
     <Exec Command="&quot;@(NuGetCommandLine->'%(FullPath)')&quot; pack $(TargetName).nuspec -Version $([System.Version]::Parse(%(assemblyInfo.Version)).ToString(3)) -OutputDirectory $(OutDir) -BasePath $(OutDir)" />
-    <Exec Command="&quot;@(Squirrel->'%(FullPath)')&quot; --no-msi --releasify $(OutDir)$(TargetName).$([System.Version]::Parse(%(assemblyInfo.Version)).ToString(3)).nupkg --releaseDir=../Releases --setupIcon=$(ProjectDir)Resources\uploader_icon_light.ico" />
+    <Exec Command="&quot;@(Squirrel->'%(FullPath)')&quot; --no-msi --releasify $(OutDir)$(TargetName).$([System.Version]::Parse(%(assemblyInfo.Version)).ToString(3)).nupkg --releaseDir=../Releases --setupIcon=Resources\uploader_icon_light.ico" />
     <Move SourceFiles="../Releases/Setup.exe" DestinationFiles="../Releases/HotsApiUploaderSetup.exe" />
     <Message Importance="High" Text="Successfully created setup package" />
   </Target>
