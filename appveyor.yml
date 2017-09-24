@@ -2,7 +2,7 @@ environment:
   core_version: 1.7.0
 image: Visual Studio 2017
 configuration: Release
-version: "$(core_version)+{branch}.{build}"
+version: '$(core_version)+{branch}.{build}'
 install:
   - cmd: git submodule update --init --recursive
   - cmd: nuget restore
