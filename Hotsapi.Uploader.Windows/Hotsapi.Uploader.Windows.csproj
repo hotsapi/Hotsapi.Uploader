@@ -62,7 +62,6 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
@@ -177,10 +176,11 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <NuGetCommandLine Include="..\packages\NuGet.CommandLine.*\tools\nuget.exe">
+    <!-- Need to glob and get last versions instead of hard coding a version. This will break when NuGet package is updated -->
+    <NuGetCommandLine Include="$(UserProfile)\.nuget\packages\NuGet.CommandLine\4.3.0\tools\nuget.exe">
       <InProject>False</InProject>
     </NuGetCommandLine>
-    <Squirrel Include="..\packages\Squirrel.Windows.*\tools\squirrel.exe">
+    <Squirrel Include="$(UserProfile)\.nuget\packages\Squirrel.Windows\1.7.8\tools\squirrel.exe">
       <InProject>False</InProject>
     </Squirrel>
   </ItemGroup>
