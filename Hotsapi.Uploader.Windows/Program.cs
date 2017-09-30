@@ -14,17 +14,19 @@ namespace Hotsapi.Uploader.Windows
         [STAThread]
         public static void Main(string[] args)
         {
-            using (var mgr = new UpdateManager("not needed here")) {
-                // Note, in most of these scenarios, the app exits after this method completes!
-                SquirrelAwareApp.HandleEvents(
-                    onInitialInstall: v => mgr.CreateShortcutForThisExe(),
-                    onAppUpdate: v => mgr.CreateShortcutForThisExe(),
-                    onAppUninstall: v => {
-                        mgr.RemoveShortcutForThisExe();
-                        if (Directory.Exists(App.SettingsDir)) {
-                            Directory.Delete(App.SettingsDir, true);
-                        }
-                    });
+            if (!App.Debug) {
+                using (var mgr = new UpdateManager("not needed here")) {
+                    // Note, in most of these scenarios, the app exits after this method completes!
+                    SquirrelAwareApp.HandleEvents(
+                        onInitialInstall: v => mgr.CreateShortcutForThisExe(),
+                        onAppUpdate: v => mgr.CreateShortcutForThisExe(),
+                        onAppUninstall: v => {
+                            mgr.RemoveShortcutForThisExe();
+                            if (Directory.Exists(App.SettingsDir)) {
+                                Directory.Delete(App.SettingsDir, true);
+                            }
+                        });
+                }
             }
 
             if (!Directory.Exists(App.SettingsDir)) {
