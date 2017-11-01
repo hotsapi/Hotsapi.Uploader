@@ -84,7 +84,6 @@ namespace Hotsapi.Uploader.Common
             replay.Players.Select(p => p.BattleNetId).OrderBy(x => x).Map(x => str.Append(x.ToString()));
             str.Append(replay.RandomValue);
             var md5 = MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(str.ToString()));
-            SwapBytes(md5, 6, 7);
             var result = new Guid(md5);
             return result.ToString();
         }
