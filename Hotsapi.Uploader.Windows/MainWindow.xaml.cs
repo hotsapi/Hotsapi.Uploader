@@ -48,9 +48,10 @@ namespace Hotsapi.Uploader.Windows
             new SettingsWindow() { Owner = this, DataContext = this }.ShowDialog();
         }
 
-        private void Restart_Click(object sender, RoutedEventArgs e)
+        private async void Restart_Click(object sender, RoutedEventArgs e)
         {
-            UpdateManager.RestartApp();
+            await UpdateManager.RestartAppWhenExited();
+            App.Shutdown();
         }
     }
 }
