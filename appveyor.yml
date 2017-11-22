@@ -7,8 +7,7 @@ configuration: Release
 version: '$(core_version)+{branch}.{build}'
 install:
   - cmd: git submodule update --init --recursive
-  - ps: Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/v4.3.0/nuget.exe -OutFile nuget.exe
-  - cmd: .\nuget.exe restore
+  - cmd: nuget.exe restore
   - cmd: '%UserProfile%\.nuget\packages\squirrel.windows\1.7.8\tools\SyncReleases.exe  --url=https://github.com/poma/Hotsapi.Uploader --token=%GitHubToken%'
 
 assembly_info:
