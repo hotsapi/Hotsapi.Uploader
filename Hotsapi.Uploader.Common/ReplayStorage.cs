@@ -14,6 +14,7 @@ namespace Hotsapi.Uploader.Common
     {
         private static Logger _log = LogManager.GetCurrentClassLogger();
         private readonly string _filename;
+        private readonly object _lock = new object();
 
         public ReplayStorage(string filename)
         {
@@ -41,11 +42,13 @@ namespace Hotsapi.Uploader.Common
         public void Save(IEnumerable<ReplayFile> files)
         {
             try {
-                using (var stream = new MemoryStream()) {
-                    var data = files.ToArray();
-                    var serializer = new XmlSerializer(data.GetType());
-                    serializer.Serialize(stream, data);
-                    File.WriteAllBytes(_filename, stream.ToArray());
+                lock (_lock) {
+                    using (var stream = new MemoryStream()) {
+                        var data = files.ToArray();
+                        var serializer = new XmlSerializer(data.GetType());
+                        serializer.Serialize(stream, data);
+                        File.WriteAllBytes(_filename, stream.ToArray());
+                    }
                 }
             }
             catch (Exception ex) {

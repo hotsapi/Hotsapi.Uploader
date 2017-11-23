@@ -138,14 +138,7 @@ namespace Hotsapi.Uploader.Common
                         // if it is, upload it
                         await _uploader.Upload(file);
                     }
-                    try {
-                        // save only replays with fixed status. Will retry failed ones on next launch.
-                        var ignored = new[] { UploadStatus.None, UploadStatus.UploadError, UploadStatus.InProgress };
-                        _storage.Save(Files.Where(x => !ignored.Contains(x.UploadStatus)));
-                    }
-                    catch (Exception ex) {
-                        _log.Error(ex, "Error saving replay list");
-                    }
+                    SaveReplayList();
                     if (ShouldDelete(file, replay)) {
                         DeleteReplay(file);
                     }
@@ -153,6 +146,18 @@ namespace Hotsapi.Uploader.Common
                 catch (Exception ex) {
                     _log.Error(ex, "Error in upload loop");
                 }
+            }
+        }
+
+        private void SaveReplayList()
+        {
+            try {
+                // save only replays with fixed status. Will retry failed ones on next launch.
+                var ignored = new[] { UploadStatus.None, UploadStatus.UploadError, UploadStatus.InProgress };
+                _storage.Save(Files.Where(x => !ignored.Contains(x.UploadStatus)));
+            }
+            catch (Exception ex) {
+                _log.Error(ex, "Error saving replay list");
             }
         }
 
