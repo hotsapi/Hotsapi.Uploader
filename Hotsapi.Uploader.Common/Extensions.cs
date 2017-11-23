@@ -15,5 +15,10 @@ namespace Hotsapi.Uploader.Common
         {
             src.Select(q => { action(q); return 0; }).Count();
         }
+
+        /// <summary>
+        /// Does nothing. Avoids compiler warning about the lack of await
+        /// </summary>
+        public static void Forget(this Task task) { }
     }
 }
