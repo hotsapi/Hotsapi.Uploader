@@ -56,8 +56,10 @@ namespace Hotsapi.Uploader.Common
             }
 
             this.CheckReentrancy();
-            foreach (var item in items)
+            foreach (var item in items) {
                 this.Items.Add(item);
+                item.PropertyChanged += Item_PropertyChanged;
+            }
             this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
     }
