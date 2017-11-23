@@ -36,6 +36,7 @@ namespace Hotsapi.Uploader.Windows
         public static string AppDir { get { return Path.GetDirectoryName(AppExe); } }
         public static string AppFile { get { return Path.GetFileName(AppExe); } }
         public static string SettingsDir { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Hotsapi"); } }
+        public static UpdateManager DummyUpdateManager => new UpdateManager(@"not needed here");
         public bool UpdateAvailable
         {
             get {
@@ -63,12 +64,10 @@ namespace Hotsapi.Uploader.Windows
                 return File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.Startup) + @"\Hotsapi Uploader.lnk");
             }
             set {
-                // use a local dummy to not wait for github request
-                var updateManager = _updateManager ?? new UpdateManager(@"not needed here");
                 if (value) {
-                    updateManager.CreateShortcutsForExecutable(AppFile, ShortcutLocation.Startup, false, "--autorun");
+                    DummyUpdateManager.CreateShortcutsForExecutable(AppFile, ShortcutLocation.Startup, false, "--autorun");
                 } else {
-                    updateManager.RemoveShortcutsForExecutable(AppFile, ShortcutLocation.Startup);
+                    DummyUpdateManager.RemoveShortcutsForExecutable(AppFile, ShortcutLocation.Startup);
                 }
             }
         }
@@ -229,7 +228,8 @@ namespace Hotsapi.Uploader.Windows
                         var reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion").OpenSubKey(@"Run");
                         if (reg.OpenSubKey(@"Run").GetValue("Hotsapi") != null) {
                             reg.OpenSubKey(@"Run", true).DeleteValue("Hotsapi", false);
-                            new UpdateManager(@"not needed here").CreateShortcutsForExecutable(App.AppFile, ShortcutLocation.Startup, false, "--autorun");
+                            
+                            DummyUpdateManager.CreateShortcutsForExecutable(App.AppFile, ShortcutLocation.Startup, false, "--autorun");
                         }
                     } else {
                         var previous = Version.Parse(Settings.ApplicationVersion);
