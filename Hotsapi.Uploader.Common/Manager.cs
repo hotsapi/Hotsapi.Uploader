@@ -38,23 +38,25 @@ namespace Hotsapi.Uploader.Common
 
         public event PropertyChangedEventHandler PropertyChanged;
 
+        private string _status = "";
         /// <summary>
         /// Current uploader status
         /// </summary>
         public string Status
         {
             get {
-                return Files.Any(x => x.UploadStatus == UploadStatus.InProgress) ? "Uploading..." : "Idle";
+                return _status;
             }
         }
 
+        private Dictionary<UploadStatus, int> _aggregates = new Dictionary<UploadStatus, int>();
         /// <summary>
         /// List of aggregate upload stats
         /// </summary>
         public Dictionary<UploadStatus, int> Aggregates
         {
             get {
-                return Files.GroupBy(x => x.UploadStatus).ToDictionary(x => x.Key, x => x.Count());
+                return _aggregates;
             }
         }
 
@@ -81,14 +83,8 @@ namespace Hotsapi.Uploader.Common
         public Manager(IReplayStorage storage)
         {
             this._storage = storage;
-            Files.ItemPropertyChanged += (_, __) => {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Aggregates)));
-            };
-            Files.CollectionChanged += (_, __) => {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Aggregates)));
-            };
+            Files.ItemPropertyChanged += (_, __) => { RefreshStatusAndAggregates(); };
+            Files.CollectionChanged += (_, __) => { RefreshStatusAndAggregates(); };
         }
 
         /// <summary>
@@ -147,6 +143,14 @@ namespace Hotsapi.Uploader.Common
                     _log.Error(ex, "Error in upload loop");
                 }
             }
+        }
+
+        private void RefreshStatusAndAggregates()
+        {
+            _status = Files.Any(x => x.UploadStatus == UploadStatus.InProgress) ? "Uploading..." : "Idle";
+            _aggregates = Files.GroupBy(x => x.UploadStatus).ToDictionary(x => x.Key, x => x.Count());
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Aggregates)));
         }
 
         private void SaveReplayList()
