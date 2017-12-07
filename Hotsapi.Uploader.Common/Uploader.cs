@@ -72,6 +72,9 @@ namespace Hotsapi.Uploader.Common
                 }
             }
             catch (WebException ex) {
+                if (await CheckApiThrottling(ex.Response)) {
+                    return await Upload(file);
+                }
                 _log.Warn(ex, $"Error uploading file '{file}'");
                 return UploadStatus.UploadError;
             }
@@ -92,6 +95,9 @@ namespace Hotsapi.Uploader.Common
                 return (bool)json.exists;
             }
             catch (WebException ex) {
+                if (await CheckApiThrottling(ex.Response)) {
+                    return await CheckDuplicate(fingerprint);
+                }
                 _log.Warn(ex, $"Error checking fingerprint '{fingerprint}'");
                 return false;
             }
@@ -112,6 +118,9 @@ namespace Hotsapi.Uploader.Common
                 return (json.exists as JArray).Select(x => x.ToString()).ToArray();
             }
             catch (WebException ex) {
+                if (await CheckApiThrottling(ex.Response)) {
+                    return await CheckDuplicate(fingerprints);
+                }
                 _log.Warn(ex, $"Error checking fingerprint array");
                 return new string[0];
             }
@@ -142,8 +151,26 @@ namespace Hotsapi.Uploader.Common
                 }
             }
             catch (WebException ex) {
+                if (await CheckApiThrottling(ex.Response)) {
+                    return await GetMinimumBuild();
+                }
                 _log.Warn(ex, $"Error getting minimum build");
                 return 0;
+            }
+        }
+
+        /// <summary>
+        /// Check if Hotsapi request limit is reached and wait if it is
+        /// </summary>
+        /// <param name="response">Server response to examine</param>
+        private async Task<bool> CheckApiThrottling(WebResponse response)
+        {
+            if ((int)(response as HttpWebResponse).StatusCode == 429) {
+                _log.Warn($"Too many requests, waiting");
+                await Task.Delay(10000);
+                return true;
+            } else {
+                return false;
             }
         }
     }
