@@ -225,12 +225,18 @@ namespace Hotsapi.Uploader.Windows
                     Settings.Upgrade();
 
                     if (string.IsNullOrEmpty(Settings.ApplicationVersion)) { // < v1.7
-                        var reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion").OpenSubKey(@"Run");
+                        /* Apparently even reading "start with windows" setting from the previous version triggers antivirus software
+                         * Commenting this out
+                         * 
+                         * Now "start with windows" setting will be lost and switched to "off" when upgrading from earlier versions
+                         * 
+                         * var reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion").OpenSubKey(@"Run");
                         if (reg.OpenSubKey(@"Run").GetValue("Hotsapi") != null) {
                             reg.OpenSubKey(@"Run", true).DeleteValue("Hotsapi", false);
                             
                             DummyUpdateManager.CreateShortcutsForExecutable(App.AppFile, ShortcutLocation.Startup, false, "--autorun");
                         }
+                        */
                     } else {
                         var previous = Version.Parse(Settings.ApplicationVersion);
 
