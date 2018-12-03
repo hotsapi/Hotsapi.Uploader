@@ -50,7 +50,10 @@ namespace Hotsapi.Uploader.Windows
 
         private async void Restart_Click(object sender, RoutedEventArgs e)
         {
-            await UpdateManager.RestartAppWhenExited();
+            // Actually this should never happen when squirrel is disabled
+            if (!App.NoSquirrel) {
+                await UpdateManager.RestartAppWhenExited();
+            }
             App.Shutdown();
         }
     }

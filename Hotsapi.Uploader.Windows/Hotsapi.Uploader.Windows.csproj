@@ -21,7 +21,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NOSQUIRREL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -30,16 +30,39 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;NOSQUIRREL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Resources\uploader_icon_light.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Zip|AnyCPU'">
+    <OutputPath>bin\Zip\</OutputPath>
+    <DefineConstants>TRACE;NOSQUIRREL</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Installer|AnyCPU'">
+    <OutputPath>bin\Installer\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DeltaCompressionDotNet" Version="1.1.0" />
     <PackageReference Include="Mono.Cecil" Version="0.9.6.1" />
+    <PackageReference Include="MSBuildTasks">
+      <Version>1.5.0.235</Version>
+    </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="NLog" Version="4.5.11" />
     <PackageReference Include="NLog.Config" Version="4.5.10" />
@@ -184,7 +207,15 @@
       <InProject>False</InProject>
     </Squirrel>
   </ItemGroup>
-  <Target Name="AfterBuild" Condition=" '$(Configuration)' == 'Release'">
+  <Target Name="AfterBuild" DependsOnTargets="BuildZip;BuildInstaller" />
+  <Target Name="BuildZip" Condition=" '$(Configuration)' == 'Zip'">
+    <ItemGroup>
+      <ZipFiles Include="$(OutDir)\*.*" Exclude="**/*.nupkg;**/*.vshost.*;**/*.xml;**/*.pdb;**/*.snk*;**/Squirrel.dll;**/NuGet.Squirrel.dll;**/Splat.dll;**/DeltaCompressionDotNet.*;**/Mono.*" />
+    </ItemGroup>
+    <Message Importance="High" Text="Result files: @(ZipFiles)" />
+    <Zip Files="@(ZipFiles)" WorkingDirectory="$(OutDir)" ZipFileName="../Releases/HotsApi.zip" ZipLevel="9" />
+  </Target>
+  <Target Name="BuildInstaller" Condition=" '$(Configuration)' == 'Installer'">
     <!-- Add some nice errors for the next person that comes along -->
     <Error Condition="!Exists(@(NuGetCommandLine->'%(FullPath)'))" Text="You are trying to use the NuGet.CommandLine package, but it is not installed. Please install NuGet.CommandLine from the Package Manager." />
     <Error Condition="!Exists(@(Squirrel->'%(FullPath)'))" Text="You are trying to use the Squirrel.Windows package, but it is not installed. Please install Squirrel.Windows from the Package Manager." />

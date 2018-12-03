@@ -59,7 +59,7 @@
             </StackPanel>
             <StackPanel DockPanel.Dock="Bottom" helpers:MarginSetter.Margin="0, 8, 8, 0">
                 <CheckBox IsChecked="{Binding App.Settings.UploadToHotslogs}" Content="Upload a copy to HotsLogs" ToolTip="Replay is uploaded only once and then a copy is sent to HotsLogs by our server" />
-                <CheckBox IsChecked="{Binding App.StartWithWindows}" Content="Start with windows" />
+                <CheckBox IsChecked="{Binding App.StartWithWindows}" Content="Start with windows" Visibility="{Binding App.StartWithWindowsCheckboxEnabled, Converter={StaticResource visibilityConverter}}" />
                 <CheckBox IsChecked="{Binding App.Settings.MinimizeToTray}" Content="Minimize to tray" />
                 <Button HorizontalAlignment="Stretch" Content="Show log" Click="ShowLog_Click" Margin="0, 8, 0, 0" />
                 <Button HorizontalAlignment="Stretch" Content="Settings" Click="Settings_Click" Margin="0, 8, 0, 0" />

@@ -14,7 +14,7 @@ namespace Hotsapi.Uploader.Windows
         [STAThread]
         public static void Main(string[] args)
         {
-            if (!App.Debug) {
+            if (!App.NoSquirrel) {
                 // Note, in most of these scenarios, the app exits after this method completes!
                 SquirrelAwareApp.HandleEvents(
                     onInitialInstall: v => App.DummyUpdateManager.CreateShortcutForThisExe(),

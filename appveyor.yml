@@ -1,9 +1,8 @@
 environment:
-  core_version: 2.0.2
+  core_version: 2.1.0
   GitHubToken:
     secure: Hq962a6/5Qpa9d37AJuVplk7sYc4AYRn9b5dg4eLi1jXBkdvbj2zRsG+8r+4nNE3
 image: Visual Studio 2017
-configuration: Release
 version: '$(core_version)+{branch}.{build}'
 install:
   - cmd: git submodule update --init --recursive
@@ -17,12 +16,13 @@ assembly_info:
   assembly_file_version: '$(core_version)'
   assembly_informational_version: '{version}'
 
-build:
-  project: Hotsapi.Uploader.sln
-  verbosity: minimal
+build_script:
+  - msbuild Hotsapi.Uploader.sln -verbosity:minimal /property:Configuration=Zip
+  - msbuild Hotsapi.Uploader.sln -verbosity:minimal /property:Configuration=Installer
 
 artifacts:
   - path: Releases\HotsApiUploaderSetup.exe
+  - path: Releases\HotsApi.zip
   - path: Releases\RELEASES
   - path: Releases\Hotsapi.Uploader-$(core_version)-full.nupkg
   - path: Releases\Hotsapi.Uploader-$(core_version)-delta.nupkg

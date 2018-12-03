@@ -14,25 +14,43 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Installer|Any CPU = Installer|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Zip|Any CPU = Zip|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{DC695BCC-4403-4B20-B4F5-EB80683E5967}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DC695BCC-4403-4B20-B4F5-EB80683E5967}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC695BCC-4403-4B20-B4F5-EB80683E5967}.Installer|Any CPU.ActiveCfg = Release|Any CPU
+		{DC695BCC-4403-4B20-B4F5-EB80683E5967}.Installer|Any CPU.Build.0 = Release|Any CPU
 		{DC695BCC-4403-4B20-B4F5-EB80683E5967}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC695BCC-4403-4B20-B4F5-EB80683E5967}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC695BCC-4403-4B20-B4F5-EB80683E5967}.Zip|Any CPU.ActiveCfg = Release|Any CPU
+		{DC695BCC-4403-4B20-B4F5-EB80683E5967}.Zip|Any CPU.Build.0 = Release|Any CPU
 		{F774F86B-410F-410D-9719-ADF892D315D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F774F86B-410F-410D-9719-ADF892D315D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F774F86B-410F-410D-9719-ADF892D315D5}.Installer|Any CPU.ActiveCfg = Installer|Any CPU
+		{F774F86B-410F-410D-9719-ADF892D315D5}.Installer|Any CPU.Build.0 = Installer|Any CPU
 		{F774F86B-410F-410D-9719-ADF892D315D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F774F86B-410F-410D-9719-ADF892D315D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F774F86B-410F-410D-9719-ADF892D315D5}.Zip|Any CPU.ActiveCfg = Zip|Any CPU
+		{F774F86B-410F-410D-9719-ADF892D315D5}.Zip|Any CPU.Build.0 = Zip|Any CPU
 		{401F4637-5826-4DDA-A666-A3B4D1994330}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{401F4637-5826-4DDA-A666-A3B4D1994330}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{401F4637-5826-4DDA-A666-A3B4D1994330}.Installer|Any CPU.ActiveCfg = Release|Any CPU
+		{401F4637-5826-4DDA-A666-A3B4D1994330}.Installer|Any CPU.Build.0 = Release|Any CPU
 		{401F4637-5826-4DDA-A666-A3B4D1994330}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{401F4637-5826-4DDA-A666-A3B4D1994330}.Release|Any CPU.Build.0 = Release|Any CPU
+		{401F4637-5826-4DDA-A666-A3B4D1994330}.Zip|Any CPU.ActiveCfg = Release|Any CPU
+		{401F4637-5826-4DDA-A666-A3B4D1994330}.Zip|Any CPU.Build.0 = Release|Any CPU
 		{7CEC9C7E-3DC6-4C72-8DFF-FE07D086B3A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7CEC9C7E-3DC6-4C72-8DFF-FE07D086B3A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CEC9C7E-3DC6-4C72-8DFF-FE07D086B3A4}.Installer|Any CPU.ActiveCfg = Release|Any CPU
+		{7CEC9C7E-3DC6-4C72-8DFF-FE07D086B3A4}.Installer|Any CPU.Build.0 = Release|Any CPU
 		{7CEC9C7E-3DC6-4C72-8DFF-FE07D086B3A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7CEC9C7E-3DC6-4C72-8DFF-FE07D086B3A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CEC9C7E-3DC6-4C72-8DFF-FE07D086B3A4}.Zip|Any CPU.ActiveCfg = Release|Any CPU
+		{7CEC9C7E-3DC6-4C72-8DFF-FE07D086B3A4}.Zip|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

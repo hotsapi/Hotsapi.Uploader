@@ -27,6 +27,15 @@ namespace Hotsapi.Uploader.Windows
 #else
         public const bool Debug = false;
 #endif
+
+#if NOSQUIRREL
+        public const bool NoSquirrel = true;
+#else
+        public const bool NoSquirrel = false;
+#endif
+        // Don't want to write converters, using this quick hack instead
+        public bool StartWithWindowsCheckboxEnabled => !NoSquirrel;
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public NotifyIcon TrayIcon { get; private set; }
@@ -119,19 +128,24 @@ namespace Hotsapi.Uploader.Windows
                 mainWindow.Show();
             }
             Manager.Start();
-            //Check for updates on startup and then every hour
-            CheckForUpdates();
-            new DispatcherTimer() {
-                Interval = TimeSpan.FromHours(1),
-                IsEnabled = true
-            }.Tick += (_, __) => CheckForUpdates();
+
+            if (!NoSquirrel) {
+                //Check for updates on startup and then every hour
+                CheckForUpdates();
+                new DispatcherTimer() {
+                    Interval = TimeSpan.FromHours(1),
+                    IsEnabled = true
+                }.Tick += (_, __) => CheckForUpdates();
+            }
         }
 
         private void Application_Exit(object sender, ExitEventArgs e)
         {
             BackupSettings();
-            _updateManager?.Dispose();
             TrayIcon?.Dispose();
+            if (!NoSquirrel) {
+                _updateManager?.Dispose();
+            }
         }
 
         public void ApplyTheme(string theme)
