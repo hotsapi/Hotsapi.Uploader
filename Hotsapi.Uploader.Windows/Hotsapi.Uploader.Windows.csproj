@@ -65,8 +65,8 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="NLog" Version="4.5.11" />
-    <PackageReference Include="NLog.Config" Version="4.5.10" />
-    <PackageReference Include="NLog.Schema" Version="4.5.10" />
+    <PackageReference Include="NLog.Config" Version="4.5.11" />
+    <PackageReference Include="NLog.Schema" Version="4.5.11" />
     <PackageReference Include="NuGet.CommandLine" Version="4.3.0" />
     <PackageReference Include="SharpCompress" Version="0.18.2" />
     <PackageReference Include="Splat" Version="1.6.2" />
@@ -212,7 +212,6 @@
     <ItemGroup>
       <ZipFiles Include="$(OutDir)\*.*" Exclude="**/*.nupkg;**/*.vshost.*;**/*.xml;**/*.pdb;**/*.snk*;**/Squirrel.dll;**/NuGet.Squirrel.dll;**/Splat.dll;**/DeltaCompressionDotNet.*;**/Mono.*" />
     </ItemGroup>
-    <Message Importance="High" Text="Result files: @(ZipFiles)" />
     <Zip Files="@(ZipFiles)" WorkingDirectory="$(OutDir)" ZipFileName="../Releases/HotsApi.zip" ZipLevel="9" />
   </Target>
   <Target Name="BuildInstaller" Condition=" '$(Configuration)' == 'Installer'">
