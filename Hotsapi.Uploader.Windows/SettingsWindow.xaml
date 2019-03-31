@@ -30,6 +30,7 @@
             <CheckBox Content="Unranked draft" IsChecked="{Binding App.Settings.DeleteAfterUpload, Converter={StaticResource flags}, ConverterParameter={x:Static common:DeleteFiles.UnrankedDraft}, Mode=TwoWay}" />
             <CheckBox Content="Hero League" IsChecked="{Binding App.Settings.DeleteAfterUpload, Converter={StaticResource flags}, ConverterParameter={x:Static common:DeleteFiles.HeroLeague}, Mode=TwoWay}" />
             <CheckBox Content="Team League" IsChecked="{Binding App.Settings.DeleteAfterUpload, Converter={StaticResource flags}, ConverterParameter={x:Static common:DeleteFiles.TeamLeague}, Mode=TwoWay}" />
+            <CheckBox Content="Storm League" IsChecked="{Binding App.Settings.DeleteAfterUpload, Converter={StaticResource flags}, ConverterParameter={x:Static common:DeleteFiles.StormLeague}, Mode=TwoWay}" />
         </StackPanel>
         <StackPanel Grid.Column="1" Margin="20" helpers:MarginSetter.Margin="0, 8, 0, 0" MinWidth="150">
             <TextBlock Text="Theme:" FontWeight="Bold" Margin="0, 0, 1, 0" />
