@@ -165,7 +165,7 @@ namespace Hotsapi.Uploader.Common
         /// <param name="response">Server response to examine</param>
         private async Task<bool> CheckApiThrottling(WebResponse response)
         {
-            if ((int)(response as HttpWebResponse).StatusCode == 429) {
+            if (response != null && (int)(response as HttpWebResponse).StatusCode == 429) {
                 _log.Warn($"Too many requests, waiting");
                 await Task.Delay(10000);
                 return true;
