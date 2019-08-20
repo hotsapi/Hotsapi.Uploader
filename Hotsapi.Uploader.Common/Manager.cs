@@ -174,7 +174,8 @@ namespace Hotsapi.Uploader.Common
             var lookup = new HashSet<ReplayFile>(replays);
             var comparer = new ReplayFile.ReplayFileComparer();
             replays.AddRange(_monitor.ScanReplays().Select(x => new ReplayFile(x)).Where(x => !lookup.Contains(x, comparer)));
-            return replays.OrderByDescending(x => x.Created).ToList();
+            //return replays.OrderByDescending(x => x.Created).ToList();
+            return replays.OrderBy(x => x.Created).ToList();
         }
 
         /// <summary>

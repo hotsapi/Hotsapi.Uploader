@@ -57,7 +57,9 @@ namespace Hotsapi.Uploader.Common
         /// </summary>
         public IEnumerable<string> ScanReplays()
         {
-            return Directory.GetFiles(ProfilePath, "*.StormReplay", SearchOption.AllDirectories);
+            return Directory.GetFiles(ProfilePath, "*.StormReplay", SearchOption.AllDirectories).OrderBy(d => new FileInfo(d).CreationTime);
+
+            //return Directory.GetFiles(ProfilePath, "*.StormReplay", SearchOption.AllDirectories);
         }
     }
 }
