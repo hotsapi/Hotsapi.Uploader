@@ -1,8 +1,8 @@
 # Hotsapi.Uploader [![Build status](https://ci.appveyor.com/api/projects/status/0tg5u1yev3l8p2qv/branch/master?svg=true)](https://ci.appveyor.com/project/poma/hotsapi-uploader/branch/master) [![Join the chat at https://gitter.im/hotsapi/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/hotsapi/Lobby)
 
-Uploads Heroes of the Storm replays to [hotsapi.net](http://hotsapi.net) ([repo link](https://github.com/poma/hotsapi))
+Uploads Heroes of the Storm replays to [hotsapi.net](https://hotsapi.net) ([repo link](https://github.com/poma/hotsapi))
 
-![Screenshot](http://hotsapi.net/img/uploader.png)
+![Screenshot](https://hotsapi.net/img/uploader.png)
 
 # Installation
 

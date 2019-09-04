@@ -16,7 +16,7 @@ namespace Hotsapi.Uploader.Common
 #if DEBUG
         const string ApiEndpoint = "http://hotsapi.local/api/v1";
 #else
-        const string ApiEndpoint = "http://hotsapi.net/api/v1";
+        const string ApiEndpoint = "https://hotsapi.net/api/v1";
 #endif
 
         public bool UploadToHotslogs { get; set; }
