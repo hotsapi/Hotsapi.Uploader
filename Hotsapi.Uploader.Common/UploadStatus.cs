@@ -8,7 +8,9 @@ namespace Hotsapi.Uploader.Common
     {
         None,
         Success,
-        InProgress,
+        Preprocessed,
+        Preprocessing,
+        Uploading,
         UploadError,
         Duplicate,
         AiDetected,

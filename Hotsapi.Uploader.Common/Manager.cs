@@ -21,7 +21,8 @@ namespace Hotsapi.Uploader.Common
         /// <summary>
         /// Upload thead count
         /// </summary>
-        public const int MaxThreads = 4;
+        public readonly int MaxThreads = Environment.ProcessorCount;
+        public const int MaxUploads = 4;
 
         /// <summary>
         /// Replay list
@@ -115,9 +116,7 @@ namespace Hotsapi.Uploader.Common
 
             _analyzer.MinimumBuild = await _uploader.GetMinimumBuild();
 
-            for (int i = 0; i < MaxThreads; i++) {
-                Task.Run(UploadLoop).Forget();
-            }
+            _ = UploadLoop();
         }
 
         public void Stop()
@@ -128,32 +127,72 @@ namespace Hotsapi.Uploader.Common
 
         private async Task UploadLoop()
         {
-            while (await processingQueue.OutputAvailableAsync()) {
-                try {
-                    var file = await processingQueue.TakeAsync();
+            var rateLimitUploading = new SemaphoreSlim(MaxUploads);
+            using (var rateLimitParsing = new SemaphoreSlim(MaxThreads)) {
+                while (await processingQueue.OutputAvailableAsync()) {
+                    try {
+                        var file = await processingQueue.TakeAsync();
+                        Task<Replay> parsing = null;
+                        try {
+                            await rateLimitParsing.WaitAsync();
+                            file.UploadStatus = UploadStatus.Preprocessing;
+                            parsing = WorkerPool.RunBackground(() => _analyzer.Analyze(file));
+                        }
+                        finally {
+                            _ = rateLimitParsing.Release();
+                        }
 
-                    file.UploadStatus = UploadStatus.InProgress;
+                        if (parsing != null) {
+                            
+                            var settingUpdate = parsing.ContinueWith((Task<Replay> trp) => {
+                                if (trp.Status == TaskStatus.RanToCompletion) {
+                                    file.UploadStatus = UploadStatus.Preprocessed;
+                                }
+                                return trp.Result;
+                            });
 
-                    // test if replay is eligible for upload (not AI, PTR, Custom, etc)
-                    var replay = _analyzer.Analyze(file);
-                    if (file.UploadStatus == UploadStatus.InProgress) {
-                        // if it is, upload it
-                        await _uploader.Upload(file);
+                            //don't await the upload task, but bound it by the upload ratelimiter
+                            _ = Task.Run(async () => {
+                                try {
+                                    await rateLimitUploading.WaitAsync();
+                                    var parsed = await settingUpdate;
+                                    file.UploadStatus = UploadStatus.Uploading;
+                                    await DoFileUpload(file, parsed);
+                                }
+                                finally {
+                                    _ = rateLimitUploading.Release();
+                                }
+                            });
+                        }
+
                     }
-                    SaveReplayList();
-                    if (ShouldDelete(file, replay)) {
-                        DeleteReplay(file);
+                    catch (Exception ex) {
+                        _log.Error(ex, "Error in upload loop");
                     }
-                }
-                catch (Exception ex) {
-                    _log.Error(ex, "Error in upload loop");
                 }
             }
         }
 
+        private async Task DoFileUpload(ReplayFile file, Replay replay)
+        {
+            // Analyze will set the upload status as a side-effect when it's unsuitable for uploading
+            if (file.UploadStatus == UploadStatus.Uploading) {
+                await _uploader.Upload(file);
+            }
+            SaveReplayList();
+            if (ShouldDelete(file, replay)) {
+                DeleteReplay(file);
+            }
+        }
+
+        private bool IsProcessingStatus(UploadStatus status) =>
+            status == UploadStatus.Preprocessing ||
+            status == UploadStatus.Preprocessed ||
+            status == UploadStatus.Uploading;
+
         private void RefreshStatusAndAggregates()
         {
-            _status = Files.Any(x => x.UploadStatus == UploadStatus.InProgress) ? "Uploading..." : "Idle";
+            _status = Files.Select(x => x.UploadStatus).Any(IsProcessingStatus) ? "Processing..." : "Idle";
             _aggregates = Files.GroupBy(x => x.UploadStatus).ToDictionary(x => x.Key, x => x.Count());
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Aggregates)));
@@ -163,8 +202,9 @@ namespace Hotsapi.Uploader.Common
         {
             try {
                 // save only replays with fixed status. Will retry failed ones on next launch.
-                var ignored = new[] { UploadStatus.None, UploadStatus.UploadError, UploadStatus.InProgress };
-                _storage.Save(Files.Where(x => !ignored.Contains(x.UploadStatus)));
+                var ignored = new[] { UploadStatus.None, UploadStatus.UploadError};
+                bool isIgnored(UploadStatus status) => ignored.Contains(status) || IsProcessingStatus(status);
+                _storage.Save(Files.Where(file => !isIgnored(file.UploadStatus)));
             }
             catch (Exception ex) {
                 _log.Error(ex, "Error saving replay list");

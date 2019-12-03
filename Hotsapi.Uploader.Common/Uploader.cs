@@ -35,7 +35,7 @@ namespace Hotsapi.Uploader.Common
         /// <param name="file"></param>
         public async Task Upload(ReplayFile file)
         {
-            file.UploadStatus = UploadStatus.InProgress;
+            file.UploadStatus = UploadStatus.Uploading;
             if (file.Fingerprint != null && await CheckDuplicate(file.Fingerprint)) {
                 _log.Debug($"File {file} marked as duplicate");
                 file.UploadStatus = UploadStatus.Duplicate;
