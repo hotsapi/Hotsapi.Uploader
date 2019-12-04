@@ -32,6 +32,8 @@ namespace Hotsapi.Uploader.Common
         private static Logger _log = LogManager.GetCurrentClassLogger();
         private bool _initialized = false;
         private AsyncCollection<ReplayFile> processingQueue = new AsyncCollection<ReplayFile>(new ConcurrentStack<ReplayFile>());
+        private ConcurrentAyncBuffer<(Replay, ReplayFile)> FingerprintingQueue = new ConcurrentAyncBuffer<(Replay, ReplayFile)>();
+        private ConcurrentAyncBuffer<(Replay, ReplayFile)> UploadQueue = new ConcurrentAyncBuffer<(Replay, ReplayFile)>();
         private readonly IReplayStorage _storage;
         private IUploader _uploader;
         private IAnalyzer _analyzer;
@@ -83,7 +85,7 @@ namespace Hotsapi.Uploader.Common
 
         public Manager(IReplayStorage storage)
         {
-            this._storage = storage;
+            _storage = storage;
             Files.ItemPropertyChanged += (_, __) => { RefreshStatusAndAggregates(); };
             Files.CollectionChanged += (_, __) => { RefreshStatusAndAggregates(); };
         }
@@ -116,7 +118,9 @@ namespace Hotsapi.Uploader.Common
 
             _analyzer.MinimumBuild = await _uploader.GetMinimumBuild();
 
-            _ = UploadLoop();
+            _ = Task.Run(() => ParseLoop());
+            _ = Task.Run(() => FingerprintLoop());
+            _ = Task.Run(() => UploadLoop());
         }
 
         public void Stop()
@@ -125,58 +129,54 @@ namespace Hotsapi.Uploader.Common
             processingQueue.CompleteAdding();
         }
 
-        private async Task UploadLoop()
-        {
-            var rateLimitUploading = new SemaphoreSlim(MaxUploads);
+        private async Task ParseLoop() {
             using (var rateLimitParsing = new SemaphoreSlim(MaxThreads)) {
                 while (await processingQueue.OutputAvailableAsync()) {
                     try {
                         var file = await processingQueue.TakeAsync();
-                        Task<Replay> parsing = null;
-                        try {
-                            await rateLimitParsing.WaitAsync();
-                            file.UploadStatus = UploadStatus.Preprocessing;
-                            parsing = WorkerPool.RunBackground(() => _analyzer.Analyze(file));
-                        }
-                        finally {
-                            _ = rateLimitParsing.Release();
-                        }
-
-                        if (parsing != null) {
-                            
-                            var settingUpdate = parsing.ContinueWith((Task<Replay> trp) => {
-                                if (trp.Status == TaskStatus.RanToCompletion) {
-                                    file.UploadStatus = UploadStatus.Preprocessed;
-                                }
-                                return trp.Result;
-                            });
-
-                            //don't await the upload task, but bound it by the upload ratelimiter
-                            _ = Task.Run(async () => {
-                                try {
-                                    await rateLimitUploading.WaitAsync();
-                                    var parsed = await settingUpdate;
-                                    file.UploadStatus = UploadStatus.Uploading;
-                                    await DoFileUpload(file, parsed);
-                                }
-                                finally {
-                                    _ = rateLimitUploading.Release();
+                        await rateLimitParsing.Locked(() => {
+                            _ = WorkerPool.RunBackground(async () => {
+                                var replay = _analyzer.Analyze(file);
+                                if (replay != null && file.UploadStatus == UploadStatus.Preprocessed) {
+                                    await FingerprintingQueue.EnqueueAsync((replay, file));
                                 }
                             });
-                        }
-
+                        });
                     }
                     catch (Exception ex) {
-                        _log.Error(ex, "Error in upload loop");
+                        _log.Error(ex, "Error in parse loop");
+                    }
+                }
+            }
+        }
+        private async Task FingerprintLoop() {
+            while (true) {
+                var UnFingerprinted = await FingerprintingQueue.DequeueAsync();
+                var eligible = UnFingerprinted.Where(pair => pair.Item2.UploadStatus == UploadStatus.Preprocessed).ToList();
+                await _uploader.CheckDuplicate(eligible.Select(pair => pair.Item2));
+                await UploadQueue.EnqueueManyAsync(eligible.Where(pair => pair.Item2.UploadStatus == UploadStatus.ReadyForUpload));
+            }
+        }
+        private async Task UploadLoop() {
+            using (var rateLimitUploading = new SemaphoreSlim(MaxUploads)){
+                while (true) {
+                    var parsed = await UploadQueue.DequeueAsync();
+                    foreach (var (replay, replayfile) in parsed) {
+                        if (replayfile.UploadStatus == UploadStatus.ReadyForUpload) {
+                            //don't await the upload task, but bound it by the upload ratelimiter
+                            _ = rateLimitUploading.Locked(async () =>
+                            await DoFileUpload(replayfile, replay));
+                        }
                     }
                 }
             }
         }
 
+
         private async Task DoFileUpload(ReplayFile file, Replay replay)
         {
             // Analyze will set the upload status as a side-effect when it's unsuitable for uploading
-            if (file.UploadStatus == UploadStatus.Uploading) {
+            if (file.UploadStatus == UploadStatus.ReadyForUpload) {
                 await _uploader.Upload(file);
             }
             SaveReplayList();
@@ -188,6 +188,7 @@ namespace Hotsapi.Uploader.Common
         private bool IsProcessingStatus(UploadStatus status) =>
             status == UploadStatus.Preprocessing ||
             status == UploadStatus.Preprocessed ||
+            status == UploadStatus.ReadyForUpload ||
             status == UploadStatus.Uploading;
 
         private void RefreshStatusAndAggregates()

@@ -1,9 +1,11 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,8 +37,9 @@ namespace Hotsapi.Uploader.Common
         /// <param name="file"></param>
         public async Task Upload(ReplayFile file)
         {
+            var checkDuplicate = file.UploadStatus != UploadStatus.ReadyForUpload;
             file.UploadStatus = UploadStatus.Uploading;
-            if (file.Fingerprint != null && await CheckDuplicate(file.Fingerprint)) {
+            if (file.Fingerprint != null && !checkDuplicate || await CheckDuplicate(file.Fingerprint)) {
                 _log.Debug($"File {file} marked as duplicate");
                 file.UploadStatus = UploadStatus.Duplicate;
             } else {
@@ -131,8 +134,13 @@ namespace Hotsapi.Uploader.Common
         /// </summary>
         public async Task CheckDuplicate(IEnumerable<ReplayFile> replays)
         {
+            foreach(var replay in replays) {
+                replay.UploadStatus = UploadStatus.CheckingDuplicates;
+            }
             var exists = new HashSet<string>(await CheckDuplicate(replays.Select(x => x.Fingerprint)));
-            replays.Where(x => exists.Contains(x.Fingerprint)).Map(x => x.UploadStatus = UploadStatus.Duplicate);
+            foreach(var replay in replays) {
+                replay.UploadStatus = exists.Contains(replay.Fingerprint) ? UploadStatus.Duplicate : UploadStatus.ReadyForUpload;
+            }
         }
 
         /// <summary>
