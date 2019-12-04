@@ -129,26 +129,29 @@ namespace Hotsapi.Uploader.Common
             processingQueue.CompleteAdding();
         }
 
-        private async Task ParseLoop() {
-            using (var rateLimitParsing = new SemaphoreSlim(MaxThreads)) {
-                while (await processingQueue.OutputAvailableAsync()) {
-                    try {
-                        var file = await processingQueue.TakeAsync();
-                        await rateLimitParsing.Locked(() => {
-                            _ = WorkerPool.RunBackground(async () => {
-                                var replay = _analyzer.Analyze(file);
-                                if (replay != null && file.UploadStatus == UploadStatus.Preprocessed) {
-                                    await FingerprintingQueue.EnqueueAsync((replay, file));
-                                }
-                            });
-                        });
-                    }
-                    catch (Exception ex) {
-                        _log.Error(ex, "Error in parse loop");
-                    }
+        private async Task ParseLoop()
+        {
+            //OutputAvailableAsync will keep returning true
+            //untill all data is processed and processQueue.CompleteAdding is called
+            while (await processingQueue.OutputAvailableAsync()) {
+                try {
+                    var file = await processingQueue.TakeAsync();
+                    //don't wait for completion of background pool task.
+                    //it's internally limited to a fixed number of low-priority threads
+                    //so we can throw as much work on there as we want without choking it
+                    _ = WorkerPool.RunBackground(async () => {
+                        var replay = _analyzer.Analyze(file);
+                        if (replay != null && file.UploadStatus == UploadStatus.Preprocessed) {
+                            await FingerprintingQueue.EnqueueAsync((replay, file));
+                        }
+                    });
+                }
+                catch (Exception ex) {
+                    _log.Error(ex, "Error in parse loop");
                 }
             }
         }
+
         private async Task FingerprintLoop() {
             while (true) {
                 var UnFingerprinted = await FingerprintingQueue.DequeueAsync();
