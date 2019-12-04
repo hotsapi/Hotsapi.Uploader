@@ -34,12 +34,12 @@ namespace Hotsapi.Uploader.Common
         /// <summary>
         /// Upload replay
         /// </summary>
-        /// <param name="file"></param>
+        /// <param name="file">The file to upload</param>
         public async Task Upload(ReplayFile file)
         {
-            var checkDuplicate = file.UploadStatus != UploadStatus.ReadyForUpload;
+            var doDuplicateCheck = file.UploadStatus != UploadStatus.ReadyForUpload;
             file.UploadStatus = UploadStatus.Uploading;
-            if (file.Fingerprint != null && !checkDuplicate || await CheckDuplicate(file.Fingerprint)) {
+            if (file.Fingerprint != null && doDuplicateCheck && await CheckDuplicate(file.Fingerprint)) {
                 _log.Debug($"File {file} marked as duplicate");
                 file.UploadStatus = UploadStatus.Duplicate;
             } else {
