@@ -106,7 +106,9 @@ namespace Hotsapi.Uploader.Common
 
             var replays = ScanReplays();
             Files.AddRange(replays);
-            replays.Where(x => x.UploadStatus == UploadStatus.None).Reverse().Map(x => processingQueue.Add(x));
+            replays.Where(x => x.UploadStatus == UploadStatus.None)
+                   .Reverse()
+                   .Map(processingQueue.Add);
 
             _monitor.ReplayAdded += async (_, e) => {
                 await EnsureFileAvailable(e.Data, 3000);

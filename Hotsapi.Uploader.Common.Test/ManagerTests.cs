@@ -8,7 +8,7 @@ namespace Hotsapi.Uploader.Common.Test
     [TestClass]
     public partial class ManagerTests
     {
-        private Task ShortRandomDelay()
+        public static Task ShortRandomDelay()
         {
             var r = new Random();
             var delay = r.Next(100, 200);
@@ -132,8 +132,9 @@ namespace Hotsapi.Uploader.Common.Test
             });
 
             manager.Start(new NoNewFilesMonitor(), new MockAnalizer(), uploadTester);
-            var finished = await Task.WhenAny(Task.Delay(4000), done.Task);
-            await finished;
+            var num = await done.Task;
+            //var finished = await Task.WhenAny(Task.Delay(4000), done.Task);
+            //await finished;
             Assert.AreEqual(3, uploadsSeen);
         }
     }

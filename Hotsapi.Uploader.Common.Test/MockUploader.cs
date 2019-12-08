@@ -21,7 +21,13 @@ namespace Hotsapi.Uploader.Common.Test
                 };
             }
 
-            public Task CheckDuplicate(IEnumerable<ReplayFile> replays) => Task.CompletedTask;
+            public async Task CheckDuplicate(IEnumerable<ReplayFile> replays)
+            {
+                foreach (var replay in replays) {
+                    replay.UploadStatus = UploadStatus.ReadyForUpload;
+                }
+                await ShortRandomDelay(); //todo: put this elsewhere
+            }
             public Task<int> GetMinimumBuild() => Task.FromResult(1);
             public Task Upload(ReplayFile file)
             {
