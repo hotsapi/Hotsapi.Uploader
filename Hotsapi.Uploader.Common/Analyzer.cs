@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Hotsapi.Uploader.Common
 {
-    public class Analyzer
+    public class Analyzer : IAnalyzer
     {
         public int MinimumBuild { get; set; }
 

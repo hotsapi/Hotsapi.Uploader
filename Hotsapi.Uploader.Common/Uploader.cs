@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace Hotsapi.Uploader.Common
 {
-    public class Uploader
+    public class Uploader : IUploader
     {
-        private static Logger _log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger _log = LogManager.GetCurrentClassLogger();
 #if DEBUG
         const string ApiEndpoint = "http://hotsapi.local/api/v1";
 #else
@@ -84,7 +84,7 @@ namespace Hotsapi.Uploader.Common
         /// Check replay fingerprint against database to detect duplicate
         /// </summary>
         /// <param name="fingerprint"></param>
-        public async Task<bool> CheckDuplicate(string fingerprint)
+        private async Task<bool> CheckDuplicate(string fingerprint)
         {
             try {
                 string response;
@@ -107,7 +107,7 @@ namespace Hotsapi.Uploader.Common
         /// Mass check replay fingerprints against database to detect duplicates
         /// </summary>
         /// <param name="fingerprints"></param>
-        public async Task<string[]> CheckDuplicate(IEnumerable<string> fingerprints)
+        private async Task<string[]> CheckDuplicate(IEnumerable<string> fingerprints)
         {
             try {
                 string response;
@@ -122,7 +122,7 @@ namespace Hotsapi.Uploader.Common
                     return await CheckDuplicate(fingerprints);
                 }
                 _log.Warn(ex, $"Error checking fingerprint array");
-                return new string[0];
+                return Array.Empty<string>();
             }
         }
 
