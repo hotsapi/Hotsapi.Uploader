@@ -26,8 +26,7 @@ namespace Hotsapi.Uploader.Common.Test
                 var three = new ReplayFile("three") {
                     Created = new DateTime(2020, 1, 1, 0, 0, 20)
                 };
-                var initialFiles = new List<ReplayFile>() { one, two, three };
-                return initialFiles;
+                return new List<ReplayFile>() { one, two, three };
             }
         }
 
