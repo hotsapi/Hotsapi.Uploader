@@ -34,7 +34,7 @@ namespace Hotsapi.Uploader.Windows
         public const bool NoSquirrel = false;
 #endif
         // Don't want to write converters, using this quick hack instead
-        public bool StartWithWindowsCheckboxEnabled => !NoSquirrel;
+        public static bool StartWithWindowsCheckboxEnabled => !NoSquirrel;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -127,7 +127,7 @@ namespace Hotsapi.Uploader.Windows
                 mainWindow = new MainWindow();
                 mainWindow.Show();
             }
-            Manager.Start();
+            Manager.Start(new Monitor(), new Analyzer(), new Common.Uploader());
 
             if (!NoSquirrel) {
                 //Check for updates on startup and then every hour

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Hotsapi.Uploader.Common
 {
-    public class Monitor
+    public class Monitor : IMonitor
     {
         private static Logger _log = LogManager.GetCurrentClassLogger();
         protected readonly string ProfilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"Heroes of the Storm\Accounts");
