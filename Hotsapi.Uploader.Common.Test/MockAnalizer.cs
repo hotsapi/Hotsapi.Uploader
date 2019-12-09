@@ -9,7 +9,9 @@ namespace Hotsapi.Uploader.Common.Test
             public int MinimumBuild { get; set; }
             public Replay Analyze(ReplayFile file) {
                 file.UploadStatus = UploadStatus.Preprocessed;
-                return new Replay();
+                return new Replay() {
+                    Timestamp = file.Created
+                };
             }
             public string GetFingerprint(Replay replay) => "dummy fingerprint";
         }

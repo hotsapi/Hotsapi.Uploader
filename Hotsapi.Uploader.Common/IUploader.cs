@@ -8,7 +8,7 @@ namespace Hotsapi.Uploader.Common
         bool UploadToHotslogs { get; set; }
         Task CheckDuplicate(IEnumerable<ReplayFile> replays);
         Task<int> GetMinimumBuild();
-        Task Upload(ReplayFile file);
-        Task<UploadStatus> Upload(string file);
+        Task Upload(ReplayFile file, Task mayComplete);
+        Task<UploadStatus> Upload(string file, Task mayComplete);
     }
 }

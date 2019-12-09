@@ -10,33 +10,27 @@ namespace Hotsapi.Uploader.Common.Test
         {
             public bool UploadToHotslogs { get; set; }
 
-            private Func<ReplayFile, Task> UploadCallback = _ => Task.CompletedTask;
-            public void SetUploadCallback(Func<ReplayFile, Task> onUpload)
-            {
-                var old = UploadCallback;
-
-                UploadCallback = async (ReplayFile file) => {
-                    await old(file);
-                    await onUpload(file);
-                };
-            }
+            public Func<ReplayFile, Task> UploadStarted { get; set; } = _ => Task.CompletedTask;
+            public Func<ReplayFile, Task> UploadFinished { get; set; } = _ => Task.CompletedTask;
 
             public async Task CheckDuplicate(IEnumerable<ReplayFile> replays)
             {
                 foreach (var replay in replays) {
                     replay.UploadStatus = UploadStatus.ReadyForUpload;
                 }
-                await ShortRandomDelay(); //todo: put this elsewhere
+                await ShortRandomDelay();
             }
             public Task<int> GetMinimumBuild() => Task.FromResult(1);
-            public Task Upload(ReplayFile file)
+            public async Task Upload(ReplayFile file, Task mayComplete)
             {
-                UploadCallback(file);
-                return Task.CompletedTask;
+                await UploadStarted(file);
+                await Upload(file.Filename, mayComplete);
+                await UploadFinished(file);
             }
-            public async Task<UploadStatus> Upload(string file)
+            public async Task<UploadStatus> Upload(string file, Task mayComplete)
             {
-                await Task.Delay(100);
+                await ShortRandomDelay();
+                await mayComplete;
                 return UploadStatus.Success;
             }
         }
