@@ -1,4 +1,4 @@
-# Hotsapi.Uploader [![Build status](https://ci.appveyor.com/api/projects/status/0tg5u1yev3l8p2qv/branch/master?svg=true)](https://ci.appveyor.com/project/poma/hotsapi-uploader/branch/master) [![Join the chat at https://gitter.im/hotsapi/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/hotsapi/Lobby)
+# Hotsapi.Uploader [![Build status](https://ci.appveyor.com/api/projects/status/0tg5u1yev3l8p2qv/branch/master?svg=true)](https://ci.appveyor.com/project/poma/hotsapi-uploader/branch/master) [![Join Discord Chat](https://img.shields.io/discord/650747275886198815?label=Discord&logo=discord)](https://discord.gg/cADfdFP)
 
 Uploads Heroes of the Storm replays to [hotsapi.net](https://hotsapi.net) ([repo link](https://github.com/poma/hotsapi))
 
