@@ -32,9 +32,9 @@ namespace Hotsapi.Uploader.Common
         private bool _initialized = false;
         private AsyncCollection<ReplayFile> processingQueue = new AsyncCollection<ReplayFile>(new ConcurrentStack<ReplayFile>());
         private readonly IReplayStorage _storage;
-        private Uploader _uploader;
-        private Analyzer _analyzer;
-        private Monitor _monitor;
+        private IUploader _uploader;
+        private IAnalyzer _analyzer;
+        private IMonitor _monitor;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -90,16 +90,16 @@ namespace Hotsapi.Uploader.Common
         /// <summary>
         /// Start uploading and watching for new replays
         /// </summary>
-        public async void Start()
+        public async void Start(IMonitor monitor, IAnalyzer analyzer, IUploader uploader)
         {
             if (_initialized) {
                 return;
             }
             _initialized = true;
 
-            _uploader = new Uploader();
-            _analyzer = new Analyzer();
-            _monitor = new Monitor();
+            _uploader = uploader;
+            _analyzer = analyzer;
+            _monitor = monitor;
 
             var replays = ScanReplays();
             Files.AddRange(replays);
@@ -120,9 +120,15 @@ namespace Hotsapi.Uploader.Common
             }
         }
 
+        public void Stop()
+        {
+            _monitor.Stop();
+            processingQueue.CompleteAdding();
+        }
+
         private async Task UploadLoop()
         {
-            while (true) {
+            while (await processingQueue.OutputAvailableAsync()) {
                 try {
                     var file = await processingQueue.TakeAsync();
 
