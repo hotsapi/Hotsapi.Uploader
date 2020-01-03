@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NLog;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -16,12 +16,22 @@ namespace Hotsapi.Uploader.Common
 #if DEBUG
         private const string ApiEndpoint = "http://hotsapi.local/api/v1";
 #else
-        const string ApiEndpoint = "https://hotsapi.net/api/v1";
+        private const string ApiEndpoint = "https://hotsapi.net/api/v1";
 #endif
 
         private string UploadUrl => $"{ApiEndpoint}/upload?uploadToHotslogs={UploadToHotslogs}";
         private string BulkFingerprintUrl => $"{ApiEndpoint}/replays/fingerprints?uploadToHotslogs={UploadToHotslogs}";
         private string FingerprintOneUrl(string fingerprint) => $"{ApiEndpoint}/replays/fingerprints/v3/{fingerprint}?uploadToHotslogs={UploadToHotslogs}";
+        private HttpClient _httpClient;
+        private HttpClient HttpClient
+        {
+            get {
+                if (_httpClient == null) {
+                    _httpClient = new HttpClient();
+                }
+                return _httpClient;
+            }
+        }
 
 
         public bool UploadToHotslogs { get; set; }
@@ -41,59 +51,12 @@ namespace Hotsapi.Uploader.Common
         public async Task Upload(ReplayFile file, Task mayComplete)
         {
             var doDuplicateCheck = file.UploadStatus != UploadStatus.ReadyForUpload;
-            file.UploadStatus = UploadStatus.Uploading;
             if (file.Fingerprint != null && doDuplicateCheck && await CheckDuplicate(file.Fingerprint)) {
                 _log.Debug($"File {file} marked as duplicate");
                 file.UploadStatus = UploadStatus.Duplicate;
             } else {
+                file.UploadStatus = UploadStatus.Uploading;
                 file.UploadStatus = await Upload(file.Filename, mayComplete);
-            }
-        }
-
-        private class ReplayUpload : HttpContent
-        {
-            private const int defaultBuffersize = 1024;
-            private readonly string filename;
-            private readonly int buffersize;
-            private readonly Task mayComplete;
-
-            public ReplayUpload(string filename, int buffersize, Task mayComplete)
-            {
-                this.filename = filename;
-                this.buffersize = buffersize;
-                this.mayComplete = mayComplete;
-            }
-
-            public ReplayUpload(string filename, int buffersize) : this(filename, buffersize, Task.CompletedTask) { }
-            public ReplayUpload(string filename, Task canComplete) : this(filename, defaultBuffersize, canComplete) { }
-            public ReplayUpload(string filename) : this(filename, defaultBuffersize, Task.CompletedTask) { }
-
-
-            protected override async Task SerializeToStreamAsync(Stream stream, TransportContext context)
-            {
-                using (var input = File.OpenRead(filename)) {
-                    var buffer = new byte[buffersize];
-                    var i = 0;
-                    var done = false;
-                    while (!done) {
-                        var availableSpace = buffer.Length - i;
-                        var bytesRead = await input.ReadAsync(buffer, i, availableSpace);
-                        if (availableSpace > bytesRead) {
-                            done = true;
-                            await mayComplete;
-                        }
-                        await stream.WriteAsync(buffer, i, bytesRead);
-                        i = 0;
-                    }
-                    await stream.FlushAsync();
-                    stream.Close();
-                    input.Close();
-                }
-            }
-            protected override bool TryComputeLength(out long length)
-            {
-                length = -1;
-                return false;
             }
         }
 
@@ -105,23 +68,29 @@ namespace Hotsapi.Uploader.Common
         public async Task<UploadStatus> Upload(string file, Task mayComplete)
         {
             try {
-                string response;
-                using (var client = new HttpClient()) {
-                    var upload = new ReplayUpload(file, mayComplete);
-                    var responseMessage = await client.PostAsync(UploadUrl, upload);
-                    response = await responseMessage.Content.ReadAsStringAsync();
-                }
-                dynamic json = JObject.Parse(response);
-                if ((bool)json.success) {
-                    if (Enum.TryParse<UploadStatus>((string)json.status, out var status)) {
-                        _log.Debug($"Uploaded file '{file}': {status}");
-                        return status;
+                var upload = new ReplayUpload(file, mayComplete);
+                var multipart = new MultipartFormDataContent {
+                    { upload, "file", file }
+                };
+                var responseMessage = await HttpClient.PostAsync(UploadUrl, multipart);
+                var response = await responseMessage.Content.ReadAsStringAsync();
+                try {
+                    dynamic json = JObject.Parse(response);
+                    if ((bool)json.success) {
+                        if (Enum.TryParse<UploadStatus>((string)json.status, out var status)) {
+                            _log.Debug($"Uploaded file '{file}': {status}");
+                            return status;
+                        } else {
+                            _log.Error($"Unknown upload status '{file}': {json.status}");
+                            return UploadStatus.UploadError;
+                        }
                     } else {
-                        _log.Error($"Unknown upload status '{file}': {json.status}");
+                        _log.Warn($"Error uploading file '{file}': {response}");
                         return UploadStatus.UploadError;
                     }
-                } else {
-                    _log.Warn($"Error uploading file '{file}': {response}");
+                }
+                catch(JsonReaderException jre) {
+                    _log.Warn($"Error processing upload response for file '{file}': {jre.Message}");
                     return UploadStatus.UploadError;
                 }
             }
@@ -237,4 +206,5 @@ namespace Hotsapi.Uploader.Common
             }
         }
     }
+
 }

@@ -15,6 +15,7 @@ namespace Hotsapi.Uploader.Windows.UIHelpers
 
                 case UploadStatus.Preprocessing:
                 case UploadStatus.Preprocessed:
+                case UploadStatus.ReadyForUpload:
                 case UploadStatus.Uploading:
                     return GetBrush("StatusUploadInProgressBrush");
 

@@ -150,10 +150,12 @@ namespace Hotsapi.Uploader.Common
                     //don't submit files for fingerprinting if we have a younger file in-flight
                     _ = WorkerPool.RunBackground(async () => {
                         var replay = _analyzer.Analyze(file);
+                        if(replay == null) {
+                            file.UploadStatus = UploadStatus.UploadError;
+                        }
                         var doEnqueue = Task.CompletedTask;
                         lock (l) {
                             _ = inFlight.Remove(file);
-                           
                             if (replay != null && file.UploadStatus == UploadStatus.Preprocessed) {
                                 submissionBatch.Add((replay, file));
                                 var youngestSubmit = submissionBatch.Select(rp => rp.Item2.Created).Min();
@@ -190,7 +192,7 @@ namespace Hotsapi.Uploader.Common
         }
         private async Task UploadLoop() {
             //Make sure that the next upload doesn't *end* before the previous ended
-            //but it's OK for multiple uploads to run concurrently
+            //but it's OK for up to MaxUploads uploads to run concurrently
             var previousDone = Task.CompletedTask;
             var l = new object();
             using (var rateLimitUploading = new SemaphoreSlim(MaxUploads)){
@@ -199,7 +201,7 @@ namespace Hotsapi.Uploader.Common
                     foreach (var (replay, replayfile) in parsed) {
                         if (replayfile.UploadStatus == UploadStatus.ReadyForUpload) {
                             //don't await the upload task, but bound it by the upload ratelimiter
-                            _ = rateLimitUploading.Locked(async () => {
+                            _ = rateLimitUploading.LockedTask(async () => {
                                 Task thisDone;
                                 lock (l) {
                                     thisDone = DoFileUpload(replayfile, replay, previousDone);

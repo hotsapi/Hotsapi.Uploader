@@ -53,6 +53,7 @@ namespace Hotsapi.Uploader.Common
                 case DataParser.ReplayParseResult.PreAlphaWipe:
                     return UploadStatus.TooOld;
                 case DataParser.ReplayParseResult.Incomplete:
+                case DataParser.ReplayParseResult.UnexpectedResult:
                     return UploadStatus.Incomplete;
             }
 

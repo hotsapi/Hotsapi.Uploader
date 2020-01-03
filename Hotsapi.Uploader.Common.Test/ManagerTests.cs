@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Hotsapi.Uploader.Common.Test
@@ -94,6 +95,39 @@ namespace Hotsapi.Uploader.Common.Test
             manager.Start(new NoNewFilesMonitor(), new MockAnalizer(), uploadTester);
             var num = await done.Task;
             Assert.AreEqual(3, num);
+        }
+
+        [TestMethod]
+        public async Task UploadIsRateLimited()
+        {
+            var initialFiles = FilesInOrder;
+
+            var manager = new Manager(new MockStorage(initialFiles));
+            var uploadTester = new MockUploader();
+            var simulaneousUploads = 0;
+            var processedUploads = 0;
+            var totalFiles = initialFiles.Count();
+            var isDone = new TaskCompletionSource<int>();
+
+            uploadTester.UploadStarted = rf => {
+                var inFlight = Interlocked.Increment(ref simulaneousUploads);
+                try {
+                    Assert.IsTrue(inFlight <= Manager.MaxUploads, "may not have more uploads in flight than Manager.MaxUploads");
+                } catch (Exception e) {
+                    isDone.TrySetException(e);
+                }
+                return Task.CompletedTask;
+            };
+            uploadTester.UploadFinished = rf => {
+                Interlocked.Decrement(ref simulaneousUploads);
+                if(Interlocked.Increment(ref processedUploads) >= totalFiles) {
+                    isDone.SetResult(processedUploads);
+                }
+                return Task.CompletedTask;
+            };
+
+            manager.Start(new NoNewFilesMonitor(), new MockAnalizer(), uploadTester);
+            await isDone.Task;
         }
     }
 }
