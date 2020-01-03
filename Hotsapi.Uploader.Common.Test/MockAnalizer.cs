@@ -7,7 +7,12 @@ namespace Hotsapi.Uploader.Common.Test
         private class MockAnalizer : IAnalyzer
         {
             public int MinimumBuild { get; set; }
-            public Replay Analyze(ReplayFile file) => new Replay();
+            public Replay Analyze(ReplayFile file) {
+                file.UploadStatus = UploadStatus.Preprocessed;
+                return new Replay() {
+                    Timestamp = file.Created
+                };
+            }
             public string GetFingerprint(Replay replay) => "dummy fingerprint";
         }
     }

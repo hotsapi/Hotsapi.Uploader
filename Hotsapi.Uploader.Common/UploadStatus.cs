@@ -8,13 +8,18 @@ namespace Hotsapi.Uploader.Common
     {
         None,
         Success,
-        InProgress,
+        Preprocessing,
+        Preprocessed,
+        ReadyForUpload,
+        Uploading,
         UploadError,
+        CheckingDuplicates,
         Duplicate,
         AiDetected,
         CustomGame,
         PtrRegion,
         Incomplete,
         TooOld,
+        
     }
 }

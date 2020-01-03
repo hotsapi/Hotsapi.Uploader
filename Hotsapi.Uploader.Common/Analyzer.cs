@@ -16,21 +16,17 @@ namespace Hotsapi.Uploader.Common
         private static Logger _log = LogManager.GetCurrentClassLogger();
 
         /// <summary>
-        /// Analyze replay locally before uploading
+        /// Analyze replay locally before uploading.
+        /// 
+        /// Sets file status as a side-effect.
         /// </summary>
         /// <param name="file">Replay file</param>
         public Replay Analyze(ReplayFile file)
         {
             try {
-                var result = DataParser.ParseReplay(file.Filename, false, false, false, true);
-                var replay = result.Item2;
-                var parseResult = result.Item1;
-                var status = GetPreStatus(replay, parseResult);
-
-                if (status != null) {
-                    file.UploadStatus = status.Value;
-                }
-
+                file.UploadStatus = UploadStatus.Preprocessing;
+                var (parseResult, replay) = DataParser.ParseReplay(file.Filename, false, false, false, true);
+                file.UploadStatus = GetPreStatus(replay, parseResult) ?? file.UploadStatus;
                 if (parseResult != DataParser.ReplayParseResult.Success) {
                     return null;
                 }
@@ -44,7 +40,7 @@ namespace Hotsapi.Uploader.Common
             }
         }
 
-        public UploadStatus? GetPreStatus(Replay replay, DataParser.ReplayParseResult parseResult)
+        private UploadStatus? GetPreStatus(Replay replay, DataParser.ReplayParseResult parseResult)
         {
             switch (parseResult) {
                 case DataParser.ReplayParseResult.ComputerPlayerFound:
@@ -56,21 +52,15 @@ namespace Hotsapi.Uploader.Common
 
                 case DataParser.ReplayParseResult.PreAlphaWipe:
                     return UploadStatus.TooOld;
+                case DataParser.ReplayParseResult.Incomplete:
+                case DataParser.ReplayParseResult.UnexpectedResult:
+                    return UploadStatus.Incomplete;
             }
 
-            if (parseResult != DataParser.ReplayParseResult.Success) {
-                return null;
-            }
-
-            if (replay.GameMode == GameMode.Custom) {
-                return UploadStatus.CustomGame;
-            }
-
-            if (replay.ReplayBuild < MinimumBuild) {
-                return UploadStatus.TooOld;
-            }
-
-            return null;
+            return parseResult != DataParser.ReplayParseResult.Success ? null
+                 : replay.GameMode == GameMode.Custom ? (UploadStatus?)UploadStatus.CustomGame
+                 : replay.ReplayBuild < MinimumBuild ? (UploadStatus?)UploadStatus.TooOld
+                 : (UploadStatus?)UploadStatus.Preprocessed;
         }
 
         /// <summary>

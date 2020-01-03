@@ -19,9 +19,9 @@ namespace Hotsapi.Uploader.Common
     public class Manager : INotifyPropertyChanged
     {
         /// <summary>
-        /// Upload thead count
+        /// Maximum number of simultaneous uploads in progress
         /// </summary>
-        public const int MaxThreads = 4;
+        public const int MaxUploads = 4;
 
         /// <summary>
         /// Replay list
@@ -30,7 +30,9 @@ namespace Hotsapi.Uploader.Common
 
         private static Logger _log = LogManager.GetCurrentClassLogger();
         private bool _initialized = false;
-        private AsyncCollection<ReplayFile> processingQueue = new AsyncCollection<ReplayFile>(new ConcurrentStack<ReplayFile>());
+        private AsyncCollection<ReplayFile> processingQueue = new AsyncCollection<ReplayFile>(new ConcurrentQueue<ReplayFile>());
+        private ConcurrentAyncBuffer<(Replay, ReplayFile)> FingerprintingQueue = new ConcurrentAyncBuffer<(Replay, ReplayFile)>();
+        private ConcurrentAyncBuffer<(Replay, ReplayFile)> UploadQueue = new ConcurrentAyncBuffer<(Replay, ReplayFile)>();
         private readonly IReplayStorage _storage;
         private IUploader _uploader;
         private IAnalyzer _analyzer;
@@ -82,7 +84,7 @@ namespace Hotsapi.Uploader.Common
 
         public Manager(IReplayStorage storage)
         {
-            this._storage = storage;
+            _storage = storage;
             Files.ItemPropertyChanged += (_, __) => { RefreshStatusAndAggregates(); };
             Files.CollectionChanged += (_, __) => { RefreshStatusAndAggregates(); };
         }
@@ -102,8 +104,9 @@ namespace Hotsapi.Uploader.Common
             _monitor = monitor;
 
             var replays = ScanReplays();
-            Files.AddRange(replays);
-            replays.Where(x => x.UploadStatus == UploadStatus.None).Reverse().Map(x => processingQueue.Add(x));
+            Files.AddRange(replays.Reverse());
+            replays.Where(x => x.UploadStatus == UploadStatus.None)
+                   .Map(processingQueue.Add);
 
             _monitor.ReplayAdded += async (_, e) => {
                 await EnsureFileAvailable(e.Data, 3000);
@@ -115,9 +118,9 @@ namespace Hotsapi.Uploader.Common
 
             _analyzer.MinimumBuild = await _uploader.GetMinimumBuild();
 
-            for (int i = 0; i < MaxThreads; i++) {
-                Task.Run(UploadLoop).Forget();
-            }
+            _ = Task.Run(() => ParseLoop());
+            _ = Task.Run(() => FingerprintLoop());
+            _ = Task.Run(() => UploadLoop());
         }
 
         public void Stop()
@@ -126,34 +129,114 @@ namespace Hotsapi.Uploader.Common
             processingQueue.CompleteAdding();
         }
 
-        private async Task UploadLoop()
+        private async Task ParseLoop()
         {
+            //OutputAvailableAsync will keep returning true
+            //untill all data is processed and processQueue.CompleteAdding is called
+
+            var inFlight = new HashSet<ReplayFile>();
+            var submissionBatch = new List<(Replay, ReplayFile)>();
+            var l = new object();
             while (await processingQueue.OutputAvailableAsync()) {
                 try {
                     var file = await processingQueue.TakeAsync();
-
-                    file.UploadStatus = UploadStatus.InProgress;
-
-                    // test if replay is eligible for upload (not AI, PTR, Custom, etc)
-                    var replay = _analyzer.Analyze(file);
-                    if (file.UploadStatus == UploadStatus.InProgress) {
-                        // if it is, upload it
-                        await _uploader.Upload(file);
+                    lock (l) {
+                        inFlight.Add(file);
                     }
-                    SaveReplayList();
-                    if (ShouldDelete(file, replay)) {
-                        DeleteReplay(file);
-                    }
+                    //don't wait for completion of background pool task.
+                    //it's internally limited to a fixed number of low-priority threads
+                    //so we can throw as much work on there as we want without choking it
+
+                    //don't submit files for fingerprinting if we have a younger file in-flight
+                    _ = WorkerPool.RunBackground(async () => {
+                        var replay = _analyzer.Analyze(file);
+                        if(replay == null) {
+                            file.UploadStatus = UploadStatus.UploadError;
+                        }
+                        var doEnqueue = Task.CompletedTask;
+                        lock (l) {
+                            _ = inFlight.Remove(file);
+                            if (replay != null && file.UploadStatus == UploadStatus.Preprocessed) {
+                                submissionBatch.Add((replay, file));
+                                var youngestSubmit = submissionBatch.Select(rp => rp.Item2.Created).Min();
+                                var youngerInFlight = inFlight.Any(rf => rf.Created < youngestSubmit);
+
+                                if (!youngerInFlight) {
+                                    doEnqueue = FingerprintingQueue.EnqueueManyAsync(submissionBatch);
+                                    submissionBatch = new List<(Replay, ReplayFile)>();
+                                }
+                            }
+                        }
+                        await doEnqueue;
+                    });
                 }
                 catch (Exception ex) {
-                    _log.Error(ex, "Error in upload loop");
+                    _log.Error(ex, "Error in parse loop");
                 }
             }
         }
 
+        private async Task FingerprintLoop() {
+            while (true) {
+                //take batches from the fingerprinting queue, fingerprint
+                //those with status Preprocessed are checked for duplicates
+                //(should be all, but future concurrent processes could change that)
+                //and those that aren't duplicates (have status ReadyForUpload)
+                //are enqueued for upload
+                var UnFingerprinted = await FingerprintingQueue.DequeueAsync();
+                var eligible = UnFingerprinted.Where(pair => pair.Item2.UploadStatus == UploadStatus.Preprocessed).ToList();
+                await _uploader.CheckDuplicate(eligible.Select(pair => pair.Item2));
+                var read = eligible.Where(pair => pair.Item2.UploadStatus == UploadStatus.ReadyForUpload);
+                await UploadQueue.EnqueueManyAsync(read.OrderBy(pair => pair.Item1.Timestamp));
+            }
+        }
+        private async Task UploadLoop() {
+            //Make sure that the next upload doesn't *end* before the previous ended
+            //but it's OK for up to MaxUploads uploads to run concurrently
+            var previousDone = Task.CompletedTask;
+            var l = new object();
+            using (var rateLimitUploading = new SemaphoreSlim(MaxUploads)){
+                while (true) {
+                    var parsed = await UploadQueue.DequeueAsync();
+                    foreach (var (replay, replayfile) in parsed) {
+                        if (replayfile.UploadStatus == UploadStatus.ReadyForUpload) {
+                            //don't await the upload task, but bound it by the upload ratelimiter
+                            _ = rateLimitUploading.LockedTask(async () => {
+                                Task thisDone;
+                                lock (l) {
+                                    thisDone = DoFileUpload(replayfile, replay, previousDone);
+                                    previousDone = thisDone;
+                                }
+                                await thisDone;
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+
+        private async Task DoFileUpload(ReplayFile file, Replay replay, Task mayComplete)
+        {
+            // Analyze will set the upload status as a side-effect when it's unsuitable for uploading
+            if (file.UploadStatus == UploadStatus.ReadyForUpload) {
+                await _uploader.Upload(file, mayComplete);
+            }
+            SaveReplayList();
+            if (ShouldDelete(file, replay)) {
+                DeleteReplay(file);
+            }
+        }
+
+        private bool IsProcessingStatus(UploadStatus status) =>
+            status == UploadStatus.Preprocessing ||
+            status == UploadStatus.Preprocessed ||
+            status == UploadStatus.ReadyForUpload ||
+            status == UploadStatus.Uploading;
+
         private void RefreshStatusAndAggregates()
         {
-            _status = Files.Any(x => x.UploadStatus == UploadStatus.InProgress) ? "Uploading..." : "Idle";
+            _status = Files.Select(x => x.UploadStatus).Any(IsProcessingStatus) ? "Processing..." : "Idle";
             _aggregates = Files.GroupBy(x => x.UploadStatus).ToDictionary(x => x.Key, x => x.Count());
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Aggregates)));
@@ -163,8 +246,9 @@ namespace Hotsapi.Uploader.Common
         {
             try {
                 // save only replays with fixed status. Will retry failed ones on next launch.
-                var ignored = new[] { UploadStatus.None, UploadStatus.UploadError, UploadStatus.InProgress };
-                _storage.Save(Files.Where(x => !ignored.Contains(x.UploadStatus)));
+                var ignored = new[] { UploadStatus.None, UploadStatus.UploadError};
+                bool isIgnored(UploadStatus status) => ignored.Contains(status) || IsProcessingStatus(status);
+                _storage.Save(Files.Where(file => !isIgnored(file.UploadStatus)));
             }
             catch (Exception ex) {
                 _log.Error(ex, "Error saving replay list");
@@ -174,13 +258,13 @@ namespace Hotsapi.Uploader.Common
         /// <summary>
         /// Load replay cache and merge it with folder scan results
         /// </summary>
-        private List<ReplayFile> ScanReplays()
+        private IEnumerable<ReplayFile> ScanReplays()
         {
             var replays = new List<ReplayFile>(_storage.Load());
             var lookup = new HashSet<ReplayFile>(replays);
             var comparer = new ReplayFile.ReplayFileComparer();
             replays.AddRange(_monitor.ScanReplays().Select(x => new ReplayFile(x)).Where(x => !lookup.Contains(x, comparer)));
-            return replays.OrderByDescending(x => x.Created).ToList();
+            return replays.OrderBy(x => x.Created).ToList();
         }
 
         /// <summary>

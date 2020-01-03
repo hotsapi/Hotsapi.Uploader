@@ -1,11 +1,11 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Hotsapi.Uploader.Common
@@ -14,10 +14,25 @@ namespace Hotsapi.Uploader.Common
     {
         private static readonly Logger _log = LogManager.GetCurrentClassLogger();
 #if DEBUG
-        const string ApiEndpoint = "http://hotsapi.local/api/v1";
+        private const string ApiEndpoint = "http://hotsapi.local/api/v1";
 #else
-        const string ApiEndpoint = "https://hotsapi.net/api/v1";
+        private const string ApiEndpoint = "https://hotsapi.net/api/v1";
 #endif
+
+        private string UploadUrl => $"{ApiEndpoint}/upload?uploadToHotslogs={UploadToHotslogs}";
+        private string BulkFingerprintUrl => $"{ApiEndpoint}/replays/fingerprints?uploadToHotslogs={UploadToHotslogs}";
+        private string FingerprintOneUrl(string fingerprint) => $"{ApiEndpoint}/replays/fingerprints/v3/{fingerprint}?uploadToHotslogs={UploadToHotslogs}";
+        private HttpClient _httpClient;
+        private HttpClient HttpClient
+        {
+            get {
+                if (_httpClient == null) {
+                    _httpClient = new HttpClient();
+                }
+                return _httpClient;
+            }
+        }
+
 
         public bool UploadToHotslogs { get; set; }
 
@@ -32,15 +47,16 @@ namespace Hotsapi.Uploader.Common
         /// <summary>
         /// Upload replay
         /// </summary>
-        /// <param name="file"></param>
-        public async Task Upload(ReplayFile file)
+        /// <param name="file">The file to upload</param>
+        public async Task Upload(ReplayFile file, Task mayComplete)
         {
-            file.UploadStatus = UploadStatus.InProgress;
-            if (file.Fingerprint != null && await CheckDuplicate(file.Fingerprint)) {
+            var doDuplicateCheck = file.UploadStatus != UploadStatus.ReadyForUpload;
+            if (file.Fingerprint != null && doDuplicateCheck && await CheckDuplicate(file.Fingerprint)) {
                 _log.Debug($"File {file} marked as duplicate");
                 file.UploadStatus = UploadStatus.Duplicate;
             } else {
-                file.UploadStatus = await Upload(file.Filename);
+                file.UploadStatus = UploadStatus.Uploading;
+                file.UploadStatus = await Upload(file.Filename, mayComplete);
             }
         }
 
@@ -49,31 +65,38 @@ namespace Hotsapi.Uploader.Common
         /// </summary>
         /// <param name="file">Path to file</param>
         /// <returns>Upload result</returns>
-        public async Task<UploadStatus> Upload(string file)
+        public async Task<UploadStatus> Upload(string file, Task mayComplete)
         {
             try {
-                string response;
-                using (var client = new WebClient()) {
-                    var bytes = await client.UploadFileTaskAsync($"{ApiEndpoint}/upload?uploadToHotslogs={UploadToHotslogs}", file);
-                    response = Encoding.UTF8.GetString(bytes);
-                }
-                dynamic json = JObject.Parse(response);
-                if ((bool)json.success) {
-                    if (Enum.TryParse<UploadStatus>((string)json.status, out UploadStatus status)) {
-                        _log.Debug($"Uploaded file '{file}': {status}");
-                        return status;
+                var upload = new ReplayUpload(file, mayComplete);
+                var multipart = new MultipartFormDataContent {
+                    { upload, "file", file }
+                };
+                var responseMessage = await HttpClient.PostAsync(UploadUrl, multipart);
+                var response = await responseMessage.Content.ReadAsStringAsync();
+                try {
+                    dynamic json = JObject.Parse(response);
+                    if ((bool)json.success) {
+                        if (Enum.TryParse<UploadStatus>((string)json.status, out var status)) {
+                            _log.Debug($"Uploaded file '{file}': {status}");
+                            return status;
+                        } else {
+                            _log.Error($"Unknown upload status '{file}': {json.status}");
+                            return UploadStatus.UploadError;
+                        }
                     } else {
-                        _log.Error($"Unknown upload status '{file}': {json.status}");
+                        _log.Warn($"Error uploading file '{file}': {response}");
                         return UploadStatus.UploadError;
                     }
-                } else {
-                    _log.Warn($"Error uploading file '{file}': {response}");
+                }
+                catch(JsonReaderException jre) {
+                    _log.Warn($"Error processing upload response for file '{file}': {jre.Message}");
                     return UploadStatus.UploadError;
                 }
             }
             catch (WebException ex) {
                 if (await CheckApiThrottling(ex.Response)) {
-                    return await Upload(file);
+                    return await Upload(file, mayComplete);
                 }
                 _log.Warn(ex, $"Error uploading file '{file}'");
                 return UploadStatus.UploadError;
@@ -89,7 +112,7 @@ namespace Hotsapi.Uploader.Common
             try {
                 string response;
                 using (var client = new WebClient()) {
-                    response = await client.DownloadStringTaskAsync($"{ApiEndpoint}/replays/fingerprints/v3/{fingerprint}?uploadToHotslogs={UploadToHotslogs}");
+                    response = await client.DownloadStringTaskAsync(FingerprintOneUrl(fingerprint));
                 }
                 dynamic json = JObject.Parse(response);
                 return (bool)json.exists;
@@ -103,6 +126,8 @@ namespace Hotsapi.Uploader.Common
             }
         }
 
+
+
         /// <summary>
         /// Mass check replay fingerprints against database to detect duplicates
         /// </summary>
@@ -112,7 +137,7 @@ namespace Hotsapi.Uploader.Common
             try {
                 string response;
                 using (var client = new WebClient()) {
-                    response = await client.UploadStringTaskAsync($"{ApiEndpoint}/replays/fingerprints?uploadToHotslogs={UploadToHotslogs}", String.Join("\n", fingerprints));
+                    response = await client.UploadStringTaskAsync(BulkFingerprintUrl, String.Join("\n", fingerprints));
                 }
                 dynamic json = JObject.Parse(response);
                 return (json.exists as JArray).Select(x => x.ToString()).ToArray();
@@ -126,13 +151,20 @@ namespace Hotsapi.Uploader.Common
             }
         }
 
+
+
         /// <summary>
         /// Mass check replay fingerprints against database to detect duplicates
         /// </summary>
         public async Task CheckDuplicate(IEnumerable<ReplayFile> replays)
         {
+            foreach (var replay in replays) {
+                replay.UploadStatus = UploadStatus.CheckingDuplicates;
+            }
             var exists = new HashSet<string>(await CheckDuplicate(replays.Select(x => x.Fingerprint)));
-            replays.Where(x => exists.Contains(x.Fingerprint)).Map(x => x.UploadStatus = UploadStatus.Duplicate);
+            foreach (var replay in replays) {
+                replay.UploadStatus = exists.Contains(replay.Fingerprint) ? UploadStatus.Duplicate : UploadStatus.ReadyForUpload;
+            }
         }
 
         /// <summary>
@@ -143,7 +175,7 @@ namespace Hotsapi.Uploader.Common
             try {
                 using (var client = new WebClient()) {
                     var response = await client.DownloadStringTaskAsync($"{ApiEndpoint}/replays/min-build");
-                    if (!int.TryParse(response, out int build)) {
+                    if (!Int32.TryParse(response, out var build)) {
                         _log.Warn($"Error parsing minimum build: {response}");
                         return 0;
                     }
@@ -163,7 +195,7 @@ namespace Hotsapi.Uploader.Common
         /// Check if Hotsapi request limit is reached and wait if it is
         /// </summary>
         /// <param name="response">Server response to examine</param>
-        private async Task<bool> CheckApiThrottling(WebResponse response)
+        private static async Task<bool> CheckApiThrottling(WebResponse response)
         {
             if (response != null && (int)(response as HttpWebResponse).StatusCode == 429) {
                 _log.Warn($"Too many requests, waiting");
@@ -174,4 +206,5 @@ namespace Hotsapi.Uploader.Common
             }
         }
     }
+
 }
