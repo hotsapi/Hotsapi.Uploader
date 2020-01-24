@@ -22,7 +22,7 @@ namespace Hotsapi.Uploader.Common
         public Replay Analyze(ReplayFile file)
         {
             try {
-                var result = DataParser.ParseReplay(file.Filename, false, false, false, true);
+                var result = DataParser.ParseReplay(file.Filename, false, ParseOptions.MinimalParsing);
                 var replay = result.Item2;
                 var parseResult = result.Item1;
                 var status = GetPreStatus(replay, parseResult);
