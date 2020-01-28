@@ -101,6 +101,11 @@ namespace Hotsapi.Uploader.Common
             _analyzer = analyzer;
             _monitor = monitor;
 
+            uploader.NotifyServerDownUntil += dt => {
+                ServerDownUntil = dt;
+                RefreshStatusAndAggregates();
+            };
+
             var replays = ScanReplays();
             Files.AddRange(replays);
             replays.Where(x => x.UploadStatus == UploadStatus.None).Reverse().Map(x => processingQueue.Add(x));
@@ -126,19 +131,41 @@ namespace Hotsapi.Uploader.Common
             processingQueue.CompleteAdding();
         }
 
+        private DateTime ServerDownUntil { get; set; }
+
+        private async Task WhenUploaderAvailable()
+        {
+            var maxDelay = new TimeSpan(0, 10, 0);
+            var calculated = ServerDownUntil - DateTime.Now;
+            var delay = calculated > maxDelay ? maxDelay : calculated;
+            if (delay.TotalMilliseconds >= 0) {
+                await Task.Delay(delay);
+                await WhenUploaderAvailable();
+            }
+        }
+
+        private bool IsUploaderAvailable => ServerDownUntil <= DateTime.Now;
+
         private async Task UploadLoop()
         {
             while (await processingQueue.OutputAvailableAsync()) {
+                await WhenUploaderAvailable();
                 try {
                     var file = await processingQueue.TakeAsync();
+                    await WhenUploaderAvailable();
 
                     file.UploadStatus = UploadStatus.InProgress;
 
                     // test if replay is eligible for upload (not AI, PTR, Custom, etc)
                     var replay = _analyzer.Analyze(file);
+                    await WhenUploaderAvailable();
                     if (file.UploadStatus == UploadStatus.InProgress) {
                         // if it is, upload it
                         await _uploader.Upload(file);
+                        await Task.Yield();
+                        if (!IsUploaderAvailable) {
+                            await processingQueue.AddAsync(file);
+                        }
                     }
                     SaveReplayList();
                     if (ShouldDelete(file, replay)) {
@@ -153,7 +180,9 @@ namespace Hotsapi.Uploader.Common
 
         private void RefreshStatusAndAggregates()
         {
-            _status = Files.Any(x => x.UploadStatus == UploadStatus.InProgress) ? "Uploading..." : "Idle";
+            _status = !IsUploaderAvailable ? "Server unavailable" :
+                      Files.Any(x => x.UploadStatus == UploadStatus.InProgress) ? "Uploading..." :
+                      "Idle";
             _aggregates = Files.GroupBy(x => x.UploadStatus).ToDictionary(x => x.Key, x => x.Count());
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Aggregates)));

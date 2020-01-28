@@ -20,6 +20,8 @@ namespace Hotsapi.Uploader.Common
 #endif
 
         public bool UploadToHotslogs { get; set; }
+        public event Action<DateTime> NotifyServerDownUntil;
+        public DateTime AssumeServerDownUntil {get; private set;} = DateTime.Now;
 
         /// <summary>
         /// New instance of replay uploader
@@ -72,7 +74,14 @@ namespace Hotsapi.Uploader.Common
                 }
             }
             catch (WebException ex) {
-                if (await CheckApiThrottling(ex.Response)) {
+                if(ex.Response is HttpWebResponse httpWebResponse && httpWebResponse.StatusCode == HttpStatusCode.ServiceUnavailable) {
+                    _log.Warn($"Service unavaiable, response is {httpWebResponse}");
+                    if(AssumeServerDownUntil < DateTime.Now) {
+                        AssumeServerDownUntil = DateTime.Now.AddMinutes(10);
+                        NotifyServerDownUntil(AssumeServerDownUntil);
+                    }
+                }
+                else if (await CheckApiThrottling(ex.Response)) {
                     return await Upload(file);
                 }
                 _log.Warn(ex, $"Error uploading file '{file}'");
