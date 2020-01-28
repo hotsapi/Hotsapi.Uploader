@@ -11,6 +11,9 @@ namespace Hotsapi.Uploader.Common.Test
             public bool UploadToHotslogs { get; set; }
 
             private Func<ReplayFile, Task> UploadCallback = _ => Task.CompletedTask;
+
+            public event Action<DateTime> NotifyServerDownUntil;
+
             public void SetUploadCallback(Func<ReplayFile, Task> onUpload)
             {
                 var old = UploadCallback;
