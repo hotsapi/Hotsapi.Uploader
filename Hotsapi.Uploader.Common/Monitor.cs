@@ -30,14 +30,18 @@ namespace Hotsapi.Uploader.Common
         public void Start()
         {
             if (_watcher == null) {
-                _watcher = new FileSystemWatcher() {
-                    Path = ProfilePath,
-                    Filter = "*.StormReplay",
-                    IncludeSubdirectories = true
-                };
-                _watcher.Created += (o, e) => OnReplayAdded(e.FullPath);
+                if (Directory.Exists(ProfilePath)) {
+                    _watcher = new FileSystemWatcher() {
+                        Path = ProfilePath,
+                        Filter = "*.StormReplay",
+                        IncludeSubdirectories = true
+                    };
+                    _watcher.Created += (o, e) => OnReplayAdded(e.FullPath);
+                }
             }
-            _watcher.EnableRaisingEvents = true;
+            if (_watcher != null) {
+                _watcher.EnableRaisingEvents = true;
+            }
             _log.Debug($"Started watching for new replays");
         }
 
@@ -57,7 +61,11 @@ namespace Hotsapi.Uploader.Common
         /// </summary>
         public IEnumerable<string> ScanReplays()
         {
-            return Directory.GetFiles(ProfilePath, "*.StormReplay", SearchOption.AllDirectories);
+            if (Directory.Exists(ProfilePath)) {
+                return Directory.GetFiles(ProfilePath, "*.StormReplay", SearchOption.AllDirectories);
+            } else {
+                return Enumerable.Empty<string>();
+            }
         }
     }
 }
