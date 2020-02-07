@@ -14,6 +14,13 @@ namespace Hotsapi.Uploader.Common
         public string Fingerprint { get; set; }
         public string Filename { get; set; }
         public DateTime Created { get; set; }
+        public int? RemoteID
+        {
+            get {
+                if (UploadStatus is UploadSuccess succ) return succ.UploadID;
+                else return null;
+            }
+        }
 
         private bool _deleted;
         public bool Deleted
@@ -31,8 +38,8 @@ namespace Hotsapi.Uploader.Common
             }
         }
 
-        UploadStatus _uploadStatus = UploadStatus.None;
-        public UploadStatus UploadStatus
+        IUploadStatus _uploadStatus = null;
+        public IUploadStatus UploadStatus
         {
             get {
                 return _uploadStatus;

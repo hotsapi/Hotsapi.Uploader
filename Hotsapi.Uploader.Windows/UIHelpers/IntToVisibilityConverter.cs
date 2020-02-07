@@ -6,9 +6,9 @@ using System.Windows;
 
 namespace Hotsapi.Uploader.Windows.UIHelpers
 {
-    public class IntToVisibilityConverter : GenericValueConverter<Dictionary<UploadStatus, int>, Visibility, UploadStatus>
+    public class IntToVisibilityConverter : GenericValueConverter<Dictionary<IUploadStatus, int>, Visibility, IUploadStatus>
     {
-        protected override Visibility Convert(Dictionary<UploadStatus, int> value, UploadStatus parameter)
+        protected override Visibility Convert(Dictionary<IUploadStatus, int> value, IUploadStatus parameter)
         {
             return value.ContainsKey(parameter) ? Visibility.Visible : Visibility.Collapsed;
         }

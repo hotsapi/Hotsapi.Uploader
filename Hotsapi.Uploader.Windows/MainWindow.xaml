@@ -47,15 +47,17 @@
         <DockPanel Grid.Column="1" Grid.Row="1" Margin="12, 0, 0, 0" LastChildFill="False">
             <StackPanel DockPanel.Dock="Top" helpers:MarginSetter.Margin="0, 2" Margin="0, 8, 0, 0">
                 <TextBlock Text="{Binding App.Manager.Status}" FontWeight="Bold" Margin="0, 0, 0, 6" />
-                <TextBlock Text="{Binding App.Manager.Aggregates[None], StringFormat=Not processed: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.None}}" />
-                <TextBlock Text="{Binding App.Manager.Aggregates[Success], StringFormat=Success: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.Success}}" />
-                <TextBlock Text="{Binding App.Manager.Aggregates[UploadError], StringFormat=Upload error: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.UploadError}}" />
-                <TextBlock Text="{Binding App.Manager.Aggregates[Duplicate], StringFormat=Duplicate: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.Duplicate}}" />
-                <TextBlock Text="{Binding App.Manager.Aggregates[AiDetected], StringFormat=Ai detected: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.AiDetected}}" />
-                <TextBlock Text="{Binding App.Manager.Aggregates[CustomGame], StringFormat=Custom game: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.CustomGame}}" />
-                <TextBlock Text="{Binding App.Manager.Aggregates[PtrRegion], StringFormat=Ptr region: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.PtrRegion}}" />
-                <TextBlock Text="{Binding App.Manager.Aggregates[TooOld], StringFormat=Too old: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.TooOld}}" />
-                <TextBlock Text="{Binding App.Manager.Aggregates[Incomplete], StringFormat=Incomplete: {0}}" Visibility="{Binding App.Manager.Aggregates, Converter={StaticResource intVisibilityConverter}, ConverterParameter={x:Static hotsapi:UploadStatus.Incomplete}}" />
+                <ListBox ItemsSource="{Binding App.Manager.Aggregates}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <WrapPanel>
+                                <TextBlock Text="{Binding Status}"/>
+                                <TextBlock Text=" - " />
+                                <TextBlock Text="{Binding Count}" FontWeight="Bold" />
+                            </WrapPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
             </StackPanel>
             <StackPanel DockPanel.Dock="Bottom" helpers:MarginSetter.Margin="0, 8, 8, 0">
                 <CheckBox IsChecked="{Binding App.Settings.UploadToHotslogs}" Content="Upload a copy to HotsLogs" ToolTip="Replay is uploaded only once and then a copy is sent to HotsLogs by our server" />
