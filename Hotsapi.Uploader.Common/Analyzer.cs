@@ -28,7 +28,7 @@ namespace Hotsapi.Uploader.Common
                 var status = GetPreStatus(replay, parseResult);
 
                 if (status != null) {
-                    file.UploadStatus = status.Value;
+                    file.UploadStatus = status;
                 }
 
                 if (parseResult != DataParser.ReplayParseResult.Success) {
@@ -44,18 +44,18 @@ namespace Hotsapi.Uploader.Common
             }
         }
 
-        public UploadStatus? GetPreStatus(Replay replay, DataParser.ReplayParseResult parseResult)
+        public IUploadStatus GetPreStatus(Replay replay, DataParser.ReplayParseResult parseResult)
         {
             switch (parseResult) {
                 case DataParser.ReplayParseResult.ComputerPlayerFound:
                 case DataParser.ReplayParseResult.TryMeMode:
-                    return UploadStatus.AiDetected;
+                    return Rejected.AiDetected;
 
                 case DataParser.ReplayParseResult.PTRRegion:
-                    return UploadStatus.PtrRegion;
+                    return Rejected.PtrRegion;
 
                 case DataParser.ReplayParseResult.PreAlphaWipe:
-                    return UploadStatus.TooOld;
+                    return Rejected.TooOld;
             }
 
             if (parseResult != DataParser.ReplayParseResult.Success) {
@@ -63,11 +63,11 @@ namespace Hotsapi.Uploader.Common
             }
 
             if (replay.GameMode == GameMode.Custom) {
-                return UploadStatus.CustomGame;
+                return Rejected.CustomGame;
             }
 
             if (replay.ReplayBuild < MinimumBuild) {
-                return UploadStatus.TooOld;
+                return Rejected.TooOld;
             }
 
             return null;

@@ -16,6 +16,12 @@ using System.Collections.Concurrent;
 
 namespace Hotsapi.Uploader.Common
 {
+    public class StatusCount
+    {
+        public StatusCount(string status, int count) => (Status, Count) = (status, count);
+        public string Status { get; }
+        public int Count { get; }
+    }
     public class Manager : INotifyPropertyChanged
     {
         /// <summary>
@@ -49,16 +55,11 @@ namespace Hotsapi.Uploader.Common
             }
         }
 
-        private Dictionary<UploadStatus, int> _aggregates = new Dictionary<UploadStatus, int>();
+
         /// <summary>
         /// List of aggregate upload stats
         /// </summary>
-        public Dictionary<UploadStatus, int> Aggregates
-        {
-            get {
-                return _aggregates;
-            }
-        }
+        public IEnumerable<StatusCount> Aggregates { get; private set; } = new List<StatusCount>();
 
         /// <summary>
         /// Whether to mark replays for upload to hotslogs
@@ -103,7 +104,7 @@ namespace Hotsapi.Uploader.Common
 
             var replays = ScanReplays();
             Files.AddRange(replays);
-            replays.Where(x => x.UploadStatus == UploadStatus.None).Reverse().Map(x => processingQueue.Add(x));
+            replays.Where(x => x.UploadStatus == null).Reverse().Map(x => processingQueue.Add(x));
 
             _monitor.ReplayAdded += async (_, e) => {
                 await EnsureFileAvailable(e.Data, 3000);
@@ -154,17 +155,50 @@ namespace Hotsapi.Uploader.Common
         private void RefreshStatusAndAggregates()
         {
             _status = Files.Any(x => x.UploadStatus == UploadStatus.InProgress) ? "Uploading..." : "Idle";
-            _aggregates = Files.GroupBy(x => x.UploadStatus).ToDictionary(x => x.Key, x => x.Count());
+            Aggregates = Aggregate(Files).Select(pair => new StatusCount(pair.Item1, pair.Item2));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Aggregates)));
+        }
+
+        //I hate it
+        private IEnumerable<(String, int)> Aggregate(IEnumerable<ReplayFile> files)
+        {
+            var success = 0;
+            var unhandled = 0;
+            var rejected = new List<Rejected>();
+            var failed = 0;
+            var inProgress = 0;
+            var errors = 0;
+            foreach(var file in files) {
+                var status = file.UploadStatus;
+                if(status == null) {
+                    unhandled++;
+                } else {
+                    switch (status) {
+                        case UploadSuccess _: success++; break;
+                        case Rejected r: rejected.Add(r); break;
+                        case InternalError _: errors++; break;
+                        case IFailed _: failed++; break;
+                        case InProgress _: inProgress++; break;
+                        default: errors++; break;
+                    }
+                }
+            }
+            if (unhandled > 0) yield return ("Unhandled", unhandled);
+            if (inProgress > 0) yield return ("In progress", inProgress);
+            if (success > 0) yield return ("Success", success);
+            foreach( var (reason, count) in rejected.GroupBy(r => r.Reason).Select(gr => (gr.Key.ToString(), gr.Count()))) {
+                yield return ($"Rejected: {reason}", count);
+            }
+            if (failed > 0) yield return ("Failed", failed);
         }
 
         private void SaveReplayList()
         {
             try {
+
                 // save only replays with fixed status. Will retry failed ones on next launch.
-                var ignored = new[] { UploadStatus.None, UploadStatus.UploadError, UploadStatus.InProgress };
-                _storage.Save(Files.Where(x => !ignored.Contains(x.UploadStatus)));
+                _storage.Save(Files.Where(x => x.UploadStatus != null && (x.UploadStatus.IsSuccess || x.UploadStatus.IsRejected)));
             }
             catch (Exception ex) {
                 _log.Error(ex, "Error saving replay list");
@@ -235,10 +269,10 @@ namespace Hotsapi.Uploader.Common
         private bool ShouldDelete(ReplayFile file, Replay replay)
         {
             return
-                DeleteAfterUpload.HasFlag(DeleteFiles.PTR) && file.UploadStatus == UploadStatus.PtrRegion ||
-                DeleteAfterUpload.HasFlag(DeleteFiles.Ai) && file.UploadStatus == UploadStatus.AiDetected ||
-                DeleteAfterUpload.HasFlag(DeleteFiles.Custom) && file.UploadStatus == UploadStatus.CustomGame ||
-                file.UploadStatus == UploadStatus.Success && (
+                DeleteAfterUpload.HasFlag(DeleteFiles.PTR) && file.UploadStatus == Rejected.PtrRegion ||
+                DeleteAfterUpload.HasFlag(DeleteFiles.Ai) && file.UploadStatus == Rejected.AiDetected ||
+                DeleteAfterUpload.HasFlag(DeleteFiles.Custom) && file.UploadStatus == Rejected.CustomGame ||
+                file.UploadStatus.IsSuccess && (
                     DeleteAfterUpload.HasFlag(DeleteFiles.Brawl) && replay.GameMode == GameMode.Brawl ||
                     DeleteAfterUpload.HasFlag(DeleteFiles.QuickMatch) && replay.GameMode == GameMode.QuickMatch ||
                     DeleteAfterUpload.HasFlag(DeleteFiles.UnrankedDraft) && replay.GameMode == GameMode.UnrankedDraft ||

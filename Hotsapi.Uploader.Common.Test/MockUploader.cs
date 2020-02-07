@@ -28,10 +28,10 @@ namespace Hotsapi.Uploader.Common.Test
                 UploadCallback(file);
                 return Task.CompletedTask;
             }
-            public async Task<UploadStatus> Upload(string file)
+            public async Task<IUploadStatus> Upload(string file)
             {
                 await Task.Delay(100);
-                return UploadStatus.Success;
+                return UploadStatus.Successful(-1);
             }
         }
     }

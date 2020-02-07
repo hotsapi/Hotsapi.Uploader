@@ -14,7 +14,7 @@ namespace Hotsapi.Uploader.Common
     {
         private static readonly Logger _log = LogManager.GetCurrentClassLogger();
 #if DEBUG
-        const string ApiEndpoint = "http://hotsapi.local/api/v1";
+        const string ApiEndpoint = "https://hotsapi.net/api/v1";
 #else
         const string ApiEndpoint = "https://hotsapi.net/api/v1";
 #endif
@@ -38,9 +38,10 @@ namespace Hotsapi.Uploader.Common
             file.UploadStatus = UploadStatus.InProgress;
             if (file.Fingerprint != null && await CheckDuplicate(file.Fingerprint)) {
                 _log.Debug($"File {file} marked as duplicate");
-                file.UploadStatus = UploadStatus.Duplicate;
+                file.UploadStatus = Rejected.Duplicate;
             } else {
-                file.UploadStatus = await Upload(file.Filename);
+                var status = await Upload(file.Filename);
+                file.UploadStatus = status;
             }
         }
 
@@ -49,7 +50,7 @@ namespace Hotsapi.Uploader.Common
         /// </summary>
         /// <param name="file">Path to file</param>
         /// <returns>Upload result</returns>
-        public async Task<UploadStatus> Upload(string file)
+        public async Task<IUploadStatus> Upload(string file)
         {
             try {
                 string response;
@@ -58,25 +59,35 @@ namespace Hotsapi.Uploader.Common
                     response = Encoding.UTF8.GetString(bytes);
                 }
                 dynamic json = JObject.Parse(response);
-                if ((bool)json.success) {
-                    if (Enum.TryParse<UploadStatus>((string)json.status, out UploadStatus status)) {
-                        _log.Debug($"Uploaded file '{file}': {status}");
-                        return status;
-                    } else {
-                        _log.Error($"Unknown upload status '{file}': {json.status}");
-                        return UploadStatus.UploadError;
-                    }
-                } else {
-                    _log.Warn($"Error uploading file '{file}': {response}");
-                    return UploadStatus.UploadError;
-                }
+                return GetResponseStatus(file, response, json);
             }
             catch (WebException ex) {
                 if (await CheckApiThrottling(ex.Response)) {
                     return await Upload(file);
                 }
                 _log.Warn(ex, $"Error uploading file '{file}'");
-                return UploadStatus.UploadError;
+                return new Failed<WebException>(ex);
+            }
+        }
+
+        private static IUploadStatus GetResponseStatus(string file, string response, dynamic json)
+        {
+            if ((bool)json.success) {
+                if (json.status == "successful") {
+                    _log.Debug($"Uploaded file '{file}': Success");
+                    int? id = (int?)json.id;
+                    return UploadStatus.Successful(id ?? -1);
+                } else if (Enum.TryParse<RejectionReason>((string)json.status, out var reason)) {
+                    _log.Warn($"Uploaded file '{file}' rejected: {reason}");
+                    return Rejected.ForReason(reason);
+                } else {
+                    _log.Error($"Unknown upload status '{file}': {json.status}");
+                    return Rejected.ForUnknownReason(json.status);
+                }
+            } else {
+                _log.Warn($"Error uploading file '{file}': {response}");
+                var ex = new Exception(response);
+                return new Failed<Exception>(ex);
             }
         }
 
@@ -132,7 +143,7 @@ namespace Hotsapi.Uploader.Common
         public async Task CheckDuplicate(IEnumerable<ReplayFile> replays)
         {
             var exists = new HashSet<string>(await CheckDuplicate(replays.Select(x => x.Fingerprint)));
-            replays.Where(x => exists.Contains(x.Fingerprint)).Map(x => x.UploadStatus = UploadStatus.Duplicate);
+            replays.Where(x => exists.Contains(x.Fingerprint)).Map(x => x.UploadStatus = Rejected.Duplicate);
         }
 
         /// <summary>
